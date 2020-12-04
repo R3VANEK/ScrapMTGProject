@@ -3,12 +3,28 @@ import java.sql.SQLException;
 
 public class Main {
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+    public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException {
         System.out.println("--------------------------------------------------------");
         System.out.println("Witamy w twoim asystencie karcianki Magic The Gathering!");
-        //Sets.getSets();
-
+        System.out.println("--------------------------------------------------------");
         System.out.println();
-        DBConnect.checkDB();
+        if(DBConnect.checkDB()){
+            System.out.println("ok jest baza");
+        }
+        else{
+            System.out.println("Hm, wygląda na to, że nie masz utworzonej bazy danych");
+            System.out.println("to jest niezbędne do działania programu");
+            System.out.println("poniżej wyświetlą się wszystkie dostępne zestawy kart");
+            System.out.println("Wybierz te, które chcesz zaimportować do swojej bazy danych");
+            System.out.println();
+            System.out.println("( Wpisz nazwę dodatków po przecinku np. Amonkhet,Dominaria żeby importować wybrane zestawy )");
+            System.out.println();
+            System.out.println("--------------------------------------------------------");
+            Sets.printSets();
+            System.out.println("--------------------------------------------------------");
+        }
+
+
+
     }
 }
