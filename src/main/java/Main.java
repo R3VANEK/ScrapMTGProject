@@ -1,5 +1,8 @@
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
 
 public class Main {
 
@@ -19,9 +22,27 @@ public class Main {
             System.out.println();
             System.out.println("( Wpisz nazwę dodatków po przecinku np. Amonkhet,Dominaria żeby importować wybrane zestawy )");
             System.out.println();
-            System.out.println("--------------------------------------------------------");
-            Sets.printSets();
-            System.out.println("--------------------------------------------------------");
+
+            Expansion.printExpansions();
+
+            System.out.println("Jakie zestawy chcesz zaimportować? : ");
+            Scanner scan = new Scanner(System.in);
+            String chosenSets = scan.nextLine();
+            ArrayList<String> setsArray = new ArrayList<>(Arrays.asList(chosenSets.split(",")));
+
+            for(String set : setsArray){
+                try{
+                    Expansion tempObj = new Expansion(set);
+                } catch(IllegalArgumentException | InterruptedException e){
+                    System.out.println(e.getMessage());
+                    continue;
+                }
+
+
+            }
+
+
+
         }
 
 

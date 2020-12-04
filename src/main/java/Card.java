@@ -18,4 +18,11 @@ public class Card {
     private int power;
     private int toughness;
     private float price;
+
+
+
+    public String toString(){
+        System.out.println("reprezentacja obiektu jako wartości do polecenia insert w sqlu");
+        return "";
+    }
 }
