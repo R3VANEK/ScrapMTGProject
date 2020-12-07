@@ -28,31 +28,78 @@ public class Expansion {
 
     public Expansion(String expansionName) throws IOException {
 
+        this.expansionName = expansionName;
         if(!legalSets.contains(expansionName)){
             throw new IllegalArgumentException("Wpisano złą nazwę zestawu, pomijanie dodawania zestawu \""+expansionName+"\"");
         }
 
         System.out.println(new String(new char[50]).replace("\0", "\r\n"));
+        int page = 0;
+        Document mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page="+ page +"&output=compact&set=["+this.expansionName+"]").get();
+        Elements cardsCompact = mainSite.select(".cardItem");
 
-        this.expansionName = expansionName;
-
-        Document doc1 = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page=0&output=compact&set=["+this.expansionName+"]").get();
-        int numberOfCards = Integer.parseInt(doc1.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentHeader_searchTermDisplay").html().split("\\(")[1].replace("(","").replace(")",""));
-
+        int numberOfCards = Integer.parseInt(mainSite.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentHeader_searchTermDisplay").html().split("\\(")[1].replace("(","").replace(")",""));
+        int cardIndex = 0;
 
         System.out.println("Importowanie kart z dodatku "+this.expansionName+" trwa...");
+
+        //for(int i = 1; i<numberOfCards+1;i++){
         for(int i = 1; i<numberOfCards+1;i++){
-            System.out.print(i+"/"+numberOfCards+"\r");
-            System.out.println(getCard(doc1,expansionName,i));
+
+            /*try{
+                System.out.println( getCard(mainSite,expansionName,cardIndex) );
+                cardIndex+=1;
+            }
+
+            catch(IndexOutOfBoundsException e){
+                i-=1;
+                page+=1;
+                cardIndex=0;
+                mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page=1&output=compact&set=["+this.expansionName+"]").get();
+            }*/
+            String bla = null;
+            try{
+                System.out.print(i+"/"+numberOfCards+"\r");
+                bla = test(cardsCompact,expansionName,cardIndex);
+                cardIndex+=1;
+                System.out.println(bla);
+            }
+            catch(IndexOutOfBoundsException e){
+                page+=1;
+                mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page="+page+"&output=compact&set=[%22Amonkhet%22]").get();
+                cardsCompact = mainSite.select(".cardItem");
+                cardIndex = 0;
+                i-=1;
+            }
+
 
 
         }
     }
+
+    public static String test(Elements cardsCompact, String expansionName, int cardIndex){
+        return cardsCompact.get(cardIndex).select(".name.top>a").html();
+    }
+
+
+
     public static StringBuilder getCard(Document doc1, String expansionName, int i) throws IOException {
-        Elements cardsCompact = doc1.select(".cardItem");
-        StringBuilder cardString = new StringBuilder();
-        String cardName=cardsCompact.get(i).select(".name.top>a").html();
-        cardString.append(cardName).append(" ");
+        Elements cardsCompact = null;
+        StringBuilder cardString = null;
+
+        if(i ==103){
+            cardsCompact = doc1.select(".cardItem");
+            cardString = new StringBuilder();
+            String cardName=cardsCompact.get(i).select(".name.top>a").html();
+            cardString.append(cardName).append(" ");
+        }
+        else{
+            cardsCompact = doc1.select(".cardItem");
+            cardString = new StringBuilder();
+            String cardName=cardsCompact.get(i).select(".name.top>a").html();
+            cardString.append(cardName).append(" ");
+        }
+
 
 
 

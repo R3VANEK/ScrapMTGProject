@@ -45,6 +45,7 @@ public class Main {
 
         }*/
         Expansion.printExpansions();
+        //nie zapomnij potem usuwać tego obiektu i aktualizoać listę leglnych dodatków po zaimportowaniu zestawu
         Expansion tempObj = new Expansion("Amonkhet");
 
 
