@@ -6,8 +6,8 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException {
-        System.out.println("--------------------------------------------------------");
+    public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException, InterruptedException {
+        /*System.out.println("--------------------------------------------------------");
         System.out.println("Witamy w twoim asystencie karcianki Magic The Gathering!");
         System.out.println("--------------------------------------------------------");
         System.out.println();
@@ -43,8 +43,9 @@ public class Main {
 
 
 
-        }
-
+        }*/
+        Expansion.printExpansions();
+        Expansion tempObj = new Expansion("Amonkhet");
 
 
     }
