@@ -14,16 +14,27 @@ public class Expansion {
     private static ArrayList<String> legalSets;
 
     public static void printExpansions() throws IOException {
-        ArrayList<String> temp = new ArrayList<>();
-        System.out.println("--------------------------------------------------------");
-        Document doc = Jsoup.connect("https://gatherer.wizards.com/Pages/Default.aspx").get();
-        Elements setTags = doc.select("select[id=ctl00_ctl00_MainContent_Content_SearchControls_setAddText] > option[value]:not([value=\"\"])");
-        for(Element option : setTags){
-            System.out.println(option.html());
-            temp.add(option.html());
+
+        //teoretycznie nie łapie przypadku kiedy ktoś ma wszystkie dodatki zaimportowane
+        if(legalSets.isEmpty()){
+            ArrayList<String> temp = new ArrayList<>();
+            System.out.println("--------------------------------------------------------");
+            Document doc = Jsoup.connect("https://gatherer.wizards.com/Pages/Default.aspx").get();
+            Elements setTags = doc.select("select[id=ctl00_ctl00_MainContent_Content_SearchControls_setAddText] > option[value]:not([value=\"\"])");
+            for(Element option : setTags){
+                System.out.println(option.html());
+                temp.add(option.html());
+            }
+            legalSets = temp;
         }
-        legalSets = temp;
+        else{
+            System.out.println("--------------------------------------------------------");
+            for(String expansion : legalSets){
+                System.out.println(expansion);
+            }
+        }
         System.out.println("--------------------------------------------------------");
+
     }
 
     public Expansion(String expansionName) throws IOException {
@@ -43,23 +54,8 @@ public class Expansion {
 
         System.out.println("Importowanie kart z dodatku "+this.expansionName+" trwa...");
 
-        //for(int i = 1; i<numberOfCards+1;i++){
+
         for(int i = 1; i<numberOfCards+1;i++){
-
-            /*try{
-                System.out.println( getCard(mainSite,expansionName,cardIndex) );
-                cardIndex+=1;
-            }
-
-            catch(IndexOutOfBoundsException e){
-                i-=1;
-                page+=1;
-                cardIndex=0;
-                mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page=1&output=compact&set=["+this.expansionName+"]").get();
-            }*/
-
-
-
             StringBuilder cardDataSQL;
             try{
                 System.out.print(i+"/"+numberOfCards+"\r");
@@ -75,6 +71,7 @@ public class Expansion {
                 i-=1;
             }
         }
+        legalSets.remove(expansionName);
     }
 
 
