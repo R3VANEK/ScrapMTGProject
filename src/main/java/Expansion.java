@@ -57,12 +57,15 @@ public class Expansion {
                 cardIndex=0;
                 mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page=1&output=compact&set=["+this.expansionName+"]").get();
             }*/
-            String bla = null;
+
+
+
+            StringBuilder cardDataSQL;
             try{
                 System.out.print(i+"/"+numberOfCards+"\r");
-                bla = test(cardsCompact,expansionName,cardIndex);
+                cardDataSQL = getCard(cardsCompact,expansionName,cardIndex);
                 cardIndex+=1;
-                System.out.println(bla);
+                System.out.println(cardDataSQL);
             }
             catch(IndexOutOfBoundsException e){
                 page+=1;
@@ -71,102 +74,106 @@ public class Expansion {
                 cardIndex = 0;
                 i-=1;
             }
-
-
-
         }
     }
 
-    public static String test(Elements cardsCompact, String expansionName, int cardIndex){
-        return cardsCompact.get(cardIndex).select(".name.top>a").html();
-    }
 
+    public static StringBuilder getCard(Elements cardsCompact, String expansionName, int cardIndex) throws IOException {
 
+        StringBuilder cardString = new StringBuilder();
+        cardString.append("(");
+        Element compactCardDataRow = cardsCompact.get(cardIndex);
 
-    public static StringBuilder getCard(Document doc1, String expansionName, int i) throws IOException {
-        Elements cardsCompact = null;
-        StringBuilder cardString = null;
+        //pobieranie nazwy karty
+        String cardName=compactCardDataRow.select(".name.top>a").html();
+        cardString.append(cardName).append(",");
 
-        if(i ==103){
-            cardsCompact = doc1.select(".cardItem");
-            cardString = new StringBuilder();
-            String cardName=cardsCompact.get(i).select(".name.top>a").html();
-            cardString.append(cardName).append(" ");
-        }
-        else{
-            cardsCompact = doc1.select(".cardItem");
-            cardString = new StringBuilder();
-            String cardName=cardsCompact.get(i).select(".name.top>a").html();
-            cardString.append(cardName).append(" ");
-        }
-
-
-
-
-        Elements manaCosts =cardsCompact.get(i).select(".mana.top > img");
+        Elements manaCosts = compactCardDataRow.select(".mana.top > img");
         int cmc = 0;
-        for(Element img : manaCosts){
-            if(!StringUtil.isNumeric(img.attr("alt"))){
-                cardString.append(img.attr("alt").charAt(0));
-                cmc+=1;
-            }
-            else{
-                cardString.append(img.attr("alt"));
-                cmc+=Integer.parseInt(img.attr("alt"));
-            }
-        }
-        cardString.append(cmc);
 
-        if(cardsCompact.get(i).select(".type.top").html().contains(" ")){
-            cardString.append(cardsCompact.get(i).select(".type.top").html().split("\\s+")[0]);
+
+        //pobieranie kosztów many karty
+        //jeżeli dane przejdą w tego ifa, to znaczy, że karta jest landem, a landy nie mają kosztu rzucenia
+        //wydaje mi się, że takie rozwiązanie jest odrobinkę szybsze od pętli foreach
+        if(manaCosts.isEmpty()){
+            cardString.append("0");
         }
         else{
-            cardString.append(cardsCompact.get(i).select(".type.top").html());
+            for(int i = 0; i < manaCosts.size();i++){
+                Element img = manaCosts.get(i);
+                if(!StringUtil.isNumeric(img.attr("alt"))){
+                    cardString.append(img.attr("alt").charAt(0));
+                    cmc+=1;
+                }
+                else{
+                    cardString.append(img.attr("alt"));
+                    cmc+=Integer.parseInt(img.attr("alt"));
+                }
+            }
         }
-        Elements stats = cardsCompact.get(i).select(".numerical.top");
-        cardString.append(stats.get(0).html());
-        cardString.append(stats.get(1).html());
+        cardString.append(",").append(cmc).append(",");
 
 
-        String href = cardsCompact.get(i).select(".name.top>a").attr("abs:href");
+        //pobieranie typu karty
+        String type;
+        if(compactCardDataRow.select(".type.top").html().contains("-")){
+            String[] temp = compactCardDataRow.select(".type.top").html().split("\\s+");
+            type=temp[0];
+            cardString.append(type).append(",");
+
+        }
+        else{
+            type=compactCardDataRow.select(".type.top").html();
+            cardString.append(type).append(",");
+        }
+
+        //pobieranie statystyk karty, jeżeli jest to kreatura, to ma siłę i wytrzymałość
+        //w przeciwnym razie obie te wartości wpisuje się tu jako 0
+        Elements stats = compactCardDataRow.select(".numerical.top");
+        if(type.contains("Creature")){
+            cardString.append(stats.get(0).html()).append(",").append(stats.get(1).html()).append(",");
+        }
+        else{
+            cardString.append("0").append(",").append("0").append(",");
+        }
+
+
+        //pobieranie rzadkości karty
+        String href = compactCardDataRow.select(".name.top>a").attr("abs:href");
         Document cardDataDetailed = Jsoup.connect(href).get();
         Elements rarityElements = cardDataDetailed.select("div.value>span");
-        cardString.append(" ").append(rarityElements.get(1).html());
-        //dodanie artysty i numeru karty
-        cardString.append(" ").append(cardDataDetailed.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_CardNumberValue").html());
-        cardString.append(" ").append(cardDataDetailed.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_ArtistCredit>a").html());
+        cardString.append(rarityElements.get(1).html()).append(",");
 
-        String cardNameUrl;
+        //pobieranie artysty i numeru karty
+
+        cardString.append(cardDataDetailed.select("[id$=\"numberRow\"]>div.value").get(0).html().replace("a","")).append(",");
+        cardString.append(cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html()).append(",");
+        //do tego momentu jest ok
+
+
+        //tworzenie linku do cardmarketu, strony z cenami kart
+        String cardMarketUrl;
         String cardNameToTest = cardDataDetailed.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentHeader_subtitleDisplay").html();
-        if (cardNameToTest.contains("//")) {
-            cardNameUrl = cardNameToTest.replace(" ","").replace("//","-");
-        }
-        else{
-            cardNameUrl = cardNameToTest.replace(' ','-').replace('\'','-').replace("//","-");
-        }
+        var replace = cardNameToTest.replace(' ', '-').replace('\'', '-').replace("//", "-");
+        cardMarketUrl = (cardNameToTest.contains("//")) ? cardNameToTest.replace(" ","").replace("//","-") : replace;
 
-
-        //pobieranie ceny
-
-        Document cardMarket = Jsoup.connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardNameUrl).get();
+        //pobieranie ceny karty
+        Document cardMarket = Jsoup.connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardMarketUrl).get();
         Elements dd = cardMarket.select(".col-6");
-        int indexOfPriceElement = 0;
+        String price = null;
         for(Element single_dd : dd){
-            if(single_dd.text().contains("From")){
-                indexOfPriceElement = dd.indexOf(single_dd)+1;
+            if(single_dd.text().contains("€")){
+                price = single_dd.html().replace("€", "").replace(",",".").replace(" ","");
                 break;
             }
         }
-        String price = dd.get(indexOfPriceElement).html().replace("€", "").replace(",",".");
-        cardString.append(" ").append(price);
+        cardString.append(price).append(",");
 
 
-        //pobieranie obrazka
-        String imageUrl = cardMarket.select("div.image.card-image.is-magic>img.is-front").get(1).attr("src");
-        cardString.append(" ").append(imageUrl);
+        //pobieranie url do obrazka karty
+        String imageUrl = cardDataDetailed.select("img[id$=\"cardImage\"]").get(0).attr("abs:src");
+        cardString.append(imageUrl).append(")");
 
         return cardString;
     }
-
-
 }
