@@ -11,12 +11,14 @@ public class Expansion {
 
     private ArrayList<Card> cards;
     private String expansionName;
-    private static ArrayList<String> legalSets;
+    private static ArrayList<String> legalSets = new ArrayList<>();
 
     public static void printExpansions() throws IOException {
 
         //teoretycznie nie łapie przypadku kiedy ktoś ma wszystkie dodatki zaimportowane
-        if(legalSets.isEmpty()){
+        //trzeba potem dodać drugiego ifa który zczytuje ekspansje z bazy danych
+
+        if(legalSets.isEmpty() ){
             ArrayList<String> temp = new ArrayList<>();
             System.out.println("--------------------------------------------------------");
             Document doc = Jsoup.connect("https://gatherer.wizards.com/Pages/Default.aspx").get();
@@ -65,7 +67,8 @@ public class Expansion {
             }
             catch(IndexOutOfBoundsException e){
                 page+=1;
-                mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page="+page+"&output=compact&set=[%22Amonkhet%22]").get();
+                // haha specjalne znaczki go brrrrr Aether
+                mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page="+page+"&output=compact&set=["+expansionName+"]").get();
                 cardsCompact = mainSite.select(".cardItem");
                 cardIndex = 0;
                 i-=1;

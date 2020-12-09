@@ -6,9 +6,9 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException, InterruptedException {
-        /*System.out.println("--------------------------------------------------------");
-        System.out.println("Witamy w twoim asystencie karcianki Magic The Gathering!");
+    public static void main(String[] args) throws SQLException, ClassNotFoundException{
+        System.out.println("--------------------------------------------------------");
+        System.out.println("Witamy w twoim asystencie do karcianki Magic The Gathering!");
         System.out.println("--------------------------------------------------------");
         System.out.println();
         if(DBConnect.checkDB()){
@@ -23,7 +23,8 @@ public class Main {
             System.out.println("( Wpisz nazwę dodatków po przecinku np. Amonkhet,Dominaria żeby importować wybrane zestawy )");
             System.out.println();
 
-            Expansion.printExpansions();
+            DBConnect.createDB();
+            /*Expansion.printExpansions();
 
             System.out.println("Jakie zestawy chcesz zaimportować? : ");
             Scanner scan = new Scanner(System.in);
@@ -33,21 +34,12 @@ public class Main {
             for(String set : setsArray){
                 try{
                     Expansion tempObj = new Expansion(set);
-                } catch(IllegalArgumentException | InterruptedException e){
+                } catch(IllegalArgumentException e){
                     System.out.println(e.getMessage());
-                    continue;
                 }
 
-
-            }
-
-
-
-        }*/
-        Expansion.printExpansions();
-        //nie zapomnij potem usuwać tego obiektu i aktualizoać listę leglnych dodatków po zaimportowaniu zestawu
-        Expansion tempObj = new Expansion("Amonkhet");
-
+            }*/
+        }
 
     }
 }

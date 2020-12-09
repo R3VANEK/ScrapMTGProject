@@ -9,14 +9,19 @@ public abstract class DBConnect implements Credentials, Commands{
 
         Class.forName(JDBC_DRIVER);
         
-        System.out.println("Connecting to database...");
+        System.out.println("łączenie z xamppem...");
         Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
 
-        System.out.println("Creating database...");
+        System.out.println("tworzenie struktury bazy danych...");
+        //PreparedStatement stmt = conn.prepareStatement(sqlCreateDB);
         Statement stmt = conn.createStatement();
-
+        //spróbuj zrobić fora po poleceniach sql w Commands i zmień je na listę
         stmt.executeUpdate(sqlCreateDB);
-        System.out.println("Database created successfully...");
+        stmt.executeUpdate("use mtg;");
+        for(String sqlCommand : sqlStructure){
+            stmt.executeUpdate(sqlCommand);
+        }
+        System.out.println("Utworzone bazę danych");
 
 
     }
