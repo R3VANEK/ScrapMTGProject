@@ -13,6 +13,7 @@ public class Main {
         System.out.println();
         if(DBConnect.checkDB()){
             System.out.println("ok jest baza");
+            DBConnect.insertArtist("Zoltan Boros");
         }
         else{
             System.out.println("Hm, wygląda na to, że nie masz utworzonej bazy danych");

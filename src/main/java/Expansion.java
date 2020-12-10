@@ -5,6 +5,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class Expansion {
@@ -65,7 +66,7 @@ public class Expansion {
                 cardIndex+=1;
                 System.out.println(cardDataSQL);
             }
-            catch(IndexOutOfBoundsException e){
+            catch(IndexOutOfBoundsException | SQLException | ClassNotFoundException e){
                 page+=1;
                 // haha specjalne znaczki go brrrrr Aether
                 mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page="+page+"&output=compact&set=["+expansionName+"]").get();
@@ -78,7 +79,7 @@ public class Expansion {
     }
 
 
-    public static StringBuilder getCard(Elements cardsCompact, String expansionName, int cardIndex) throws IOException {
+    public static StringBuilder getCard(Elements cardsCompact, String expansionName, int cardIndex) throws IOException, SQLException, ClassNotFoundException {
 
         StringBuilder cardString = new StringBuilder();
         cardString.append("(");
@@ -148,6 +149,7 @@ public class Expansion {
 
         cardString.append(cardDataDetailed.select("[id$=\"numberRow\"]>div.value").get(0).html().replace("a","")).append(",");
         cardString.append(cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html()).append(",");
+        DBConnect.insertArtist(cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html());
         //do tego momentu jest ok
 
 
