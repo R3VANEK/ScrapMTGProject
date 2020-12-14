@@ -59,14 +59,14 @@ public class Expansion {
 
 
         for(int i = 1; i<numberOfCards+1;i++){
-            StringBuilder cardDataSQL;
             try{
                 System.out.print(i+"/"+numberOfCards+"\r");
-                cardDataSQL = getCard(cardsCompact,expansionName,cardIndex);
+
+                insertCardData(cardsCompact,expansionName,cardIndex);
                 cardIndex+=1;
-                System.out.println(cardDataSQL);
             }
             catch(IndexOutOfBoundsException | SQLException | ClassNotFoundException e){
+                e.getMessage();
                 page+=1;
                 // haha specjalne znaczki go brrrrr Aether
                 mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page="+page+"&output=compact&set=["+expansionName+"]").get();
@@ -95,20 +95,17 @@ public class Expansion {
 
         //pobieranie kosztów many karty
         //jeżeli dane przejdą w tego ifa, to znaczy, że karta jest landem, a landy nie mają kosztu rzucenia
-        //wydaje mi się, że takie rozwiązanie jest odrobinkę szybsze od pętli foreach
         if(manaCosts.isEmpty()){
             cardString.append("0");
         }
         else{
-            for(int i = 0; i < manaCosts.size();i++){
-                Element img = manaCosts.get(i);
-                if(!StringUtil.isNumeric(img.attr("alt"))){
+            for (Element img : manaCosts) {
+                if (!StringUtil.isNumeric(img.attr("alt"))) {
                     cardString.append(img.attr("alt").charAt(0));
-                    cmc+=1;
-                }
-                else{
+                    cmc += 1;
+                } else {
                     cardString.append(img.attr("alt"));
-                    cmc+=Integer.parseInt(img.attr("alt"));
+                    cmc += Integer.parseInt(img.attr("alt"));
                 }
             }
         }
@@ -192,35 +189,37 @@ public class Expansion {
     private static void insertCardData(Elements cardsCompact, String expansionName, int cardIndex) throws IOException, SQLException, ClassNotFoundException {
         Element compactCardDataRow = cardsCompact.get(cardIndex);
 
+
+        String cardName, cardType, rarity, artists, cardImage, price = null, manaCost="", power = "0",toughness = "0";
+        int cardNumber, cmc=0;
+
+
         //pobieranie nazwy karty
-        String cardName=compactCardDataRow.select(".name.top>a").html();
+        cardName=compactCardDataRow.select(".name.top>a").html();
         Elements manaCosts = compactCardDataRow.select(".mana.top > img");
-        int cmc = 0;
-        StringBuilder manaCost = new StringBuilder();
+
+
 
         //pobieranie kosztów many karty
         //jeżeli dane przejdą w tego ifa, to znaczy, że karta jest landem, a landy nie mają kosztu rzucenia
         //wydaje mi się, że takie rozwiązanie jest odrobinkę szybsze od pętli foreach bo w debugowaniu widać
         //że przy każdym powtórzeniu java i tak musi określić pojedyńczy przedmiot
         if(manaCosts.isEmpty()){
-            manaCost.append("0");
+            manaCost+="0";
         }
         else{
-            for(int i = 0; i < manaCosts.size();i++){
-                Element img = manaCosts.get(i);
-                if(!StringUtil.isNumeric(img.attr("alt"))){
-                    manaCost.append(img.attr("alt").charAt(0));
-                    cmc+=1;
-                }
-                else{
-                    manaCost.append(img.attr("alt"));
-                    cmc+=Integer.parseInt(img.attr("alt"));
+            for (Element img : manaCosts) {
+                if (!StringUtil.isNumeric(img.attr("alt"))) {
+                    manaCost += img.attr("alt").charAt(0);
+                    cmc += 1;
+                } else {
+                    manaCost += img.attr("alt");
+                    cmc += Integer.parseInt(img.attr("alt"));
                 }
             }
         }
 
         //pobieranie typu karty, np. creature, artefact, sorcery itp.
-        String cardType;
         if(compactCardDataRow.select(".type.top").html().contains("-")){
             String[] temp = compactCardDataRow.select(".type.top").html().split("\\s+");
             cardType=temp[0];
@@ -233,23 +232,21 @@ public class Expansion {
         //pobieranie statystyk karty, jeżeli jest to kreatura, to ma siłę i wytrzymałość
         //w przeciwnym razie obie te wartości wpisuje się tu jako 0
         Elements stats = compactCardDataRow.select(".numerical.top");
-        int power = 0;
-        int toughness = 0;
         if(cardType.contains("Creature")){
-            power = Integer.parseInt(stats.get(0).html());
-            toughness = Integer.parseInt(stats.get(1).html());
+            power = stats.get(0).html();
+            toughness = stats.get(1).html();
         }
 
         //pobieranie rzadkości karty np. Common, Uncommon, Rare
         String href = compactCardDataRow.select(".name.top>a").attr("abs:href");
         Document cardDataDetailed = Jsoup.connect(href).get();
         Elements rarityElements = cardDataDetailed.select("div.value>span");
-        String rarity = rarityElements.get(1).html();
+        rarity = rarityElements.get(1).html();
 
 
         //pobieranie artysty i numeru karty
-        String artists = cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html();
-        int cardNumber = Integer.parseInt(cardDataDetailed.select("[id$=\"numberRow\"]>div.value").get(0).html().replace("a",""));
+        artists = cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html();
+        cardNumber = Integer.parseInt(cardDataDetailed.select("[id$=\"numberRow\"]>div.value").get(0).html().replace("a",""));
         //DBConnect.insertArtist(cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html());
 
 
@@ -262,7 +259,6 @@ public class Expansion {
         //pobieranie ceny karty
         Document cardMarket = Jsoup.connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardMarketUrl).get();
         Elements dd = cardMarket.select(".col-6");
-        String price = null;
         for(Element single_dd : dd){
             if(single_dd.text().contains("€")){
                 price = single_dd.html().replace("€", "").replace(",",".").replace(" ","");
@@ -270,7 +266,7 @@ public class Expansion {
             }
         }
 
-        String cardImage = cardDataDetailed.select("img[id$=\"cardImage\"]").get(0).attr("abs:src");
+        cardImage = cardDataDetailed.select("img[id$=\"cardImage\"]").get(0).attr("abs:src");
 
 
 

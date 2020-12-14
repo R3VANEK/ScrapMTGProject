@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException{
+    public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException {
         System.out.println("--------------------------------------------------------");
         System.out.println("Witamy w twoim asystencie do karcianki Magic The Gathering!");
         System.out.println("--------------------------------------------------------");
@@ -26,12 +26,12 @@ public class Main {
                     "\"Rare\"",
                     2,
                     2
-                    );*/
+                    );
 
             DBConnect.insertArtist("Zoltan Boros &amp; John Doe");
             DBConnect.insertExpansion("\"Zendikar\"");
             DBConnect.insertCardExpansionConnection("\"Zendikar\"", "6.99");
-            DBConnect.insertCardArtistsConnection();
+            DBConnect.insertCardArtistsConnection();*/
         }
         else{
             System.out.println("Hm, wygląda na to, że nie masz utworzonej bazy danych");
@@ -43,21 +43,22 @@ public class Main {
             System.out.println();
 
             DBConnect.createDB();
-            /*Expansion.printExpansions();
+            Expansion.printExpansions();
 
             System.out.println("Jakie zestawy chcesz zaimportować? : ");
             Scanner scan = new Scanner(System.in);
             String chosenSets = scan.nextLine();
             ArrayList<String> setsArray = new ArrayList<>(Arrays.asList(chosenSets.split(",")));
-            DBConnect.insertExpansion(set);
+
             for(String set : setsArray){
+                DBConnect.insertExpansion(set);
                 try{
                     Expansion tempObj = new Expansion(set);
-                } catch(IllegalArgumentException e){
+                } catch(IllegalArgumentException | IOException e){
                     System.out.println(e.getMessage());
                 }
 
-            }*/
+            }
         }
 
     }

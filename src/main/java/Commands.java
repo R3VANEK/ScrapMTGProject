@@ -20,8 +20,8 @@ public interface Commands {
             "card_number INTEGER NOT NULL,"+
             "card_type VARCHAR(40) NOT NULL,"+
             "rarity VARCHAR(8) NOT NULL,"+
-            "power INTEGER NOT NULL,"+
-            "toughness INTEGER NOT NULL,"+
+            "power VARCHAR(4) NOT NULL,"+
+            "toughness VARCHAR(4) NOT NULL,"+
             "PRIMARY KEY ( id_card ))";
 
     String sqlExpansion = "CREATE TABLE expansions"+
@@ -31,8 +31,7 @@ public interface Commands {
 
     String sqlArtists = "CREATE TABLE artists"+
                                         "(id_artist INTEGER NOT NULL AUTO_INCREMENT,"+
-                                        "firstName VARCHAR(20) NOT NULL,"+
-                                        "lastName VARCHAR(40) NOT NULL,"+
+                                        "name VARCHAR(60) NOT NULL,"+
                                         "PRIMARY KEY ( id_artist ))";
 
     String sqlCardsExpansionConnection = "CREATE TABLE cards_expansion_connection"+

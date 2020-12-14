@@ -15,7 +15,7 @@ public abstract class DBConnect implements Credentials, Commands{
 
         Class.forName(JDBC_DRIVER);
         
-        System.out.println("łączenie z xamppem...");
+       // System.out.println("łączenie z xamppem...");
         Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
         System.out.println("tworzenie struktury bazy danych...");
         Statement stmt = conn.createStatement();
@@ -26,7 +26,7 @@ public abstract class DBConnect implements Credentials, Commands{
             stmt.executeUpdate(sqlCommand);
         }
 
-        System.out.println("Utworzone bazę danych");
+        //System.out.println("Utworzone bazę danych");
     }
 
     public static boolean checkDB() throws ClassNotFoundException, SQLException {
@@ -49,10 +49,10 @@ public abstract class DBConnect implements Credentials, Commands{
         Statement stmt = conn.createStatement();
         stmt.executeUpdate("use mtg;");
         String sqlInsert = "INSERT INTO expansions(expansion_name)"+
-                    "VALUES("+expansionName+")";
+                    "VALUES(\""+expansionName+"\")";
         stmt.executeUpdate(sqlInsert);
 
-        ResultSet indexOfExpansion = stmt.executeQuery("SELECT id_expansion FROM expansions WHERE expansion_name="+expansionName);
+        ResultSet indexOfExpansion = stmt.executeQuery("SELECT id_expansion FROM expansions WHERE expansion_name=\""+expansionName+"\"");
         while(indexOfExpansion.next()){
             LAST_INSERTED_ID_EXPANSION= indexOfExpansion.getInt("id_expansion");
         }
@@ -60,6 +60,9 @@ public abstract class DBConnect implements Credentials, Commands{
 
 
     public static void insertArtist(String artists) throws ClassNotFoundException, SQLException {
+
+
+
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
         Statement stmt = conn.createStatement();
@@ -69,32 +72,33 @@ public abstract class DBConnect implements Credentials, Commands{
         String sqlSelect1;
         if(artists.contains("&amp;")){
             String[] artistsList = artists.split("\\s&amp;\\s");
-            sqlInsert1 = "INSERT INTO artists(firstName,lastName)"+
-                                "VALUES("+"\""+artistsList[0].split("\\s")[0]+"\",\""+artistsList[0].split("\\s")[1]+"\"),"+
-                                "("+"\""+artistsList[1].split("\\s")[0]+"\",\""+artistsList[1].split("\\s")[1]+"\")";
+            sqlInsert1 = "INSERT IGNORE INTO artists(name)"+
+                                "VALUES("+"\""+artistsList[0]+"\"),"+
+                                "("+"\""+artistsList[1]+"\")";
 
             sqlSelect1 = "SELECT id_artist as id from artists order by id_artist desc limit 2";
         }
         else{
-            sqlInsert1 = "INSERT INTO artists(firstName,lastName)"+
-                                "VALUES("+"\""+artists.split("\\s")[0]+"\",\""+artists.split("\\s")[1]+"\")";
+            //niektórzy nie mają imienia i nazwiska a pseudonimy
+            sqlInsert1 = "INSERT INTO artists(name)"+
+                                "VALUES("+"\""+artists+"\")";
             sqlSelect1 = "SELECT MAX(id_artist) as id FROM artists";
         }
 
 
-        System.out.println(sqlInsert1);
+        //System.out.println(sqlInsert1);
         stmt.executeUpdate(sqlInsert1);
         ResultSet indexOfArtists = stmt.executeQuery(sqlSelect1);
         LAST_INSERTED_ID_ARTIST.clear();
         while(indexOfArtists.next()){
             LAST_INSERTED_ID_ARTIST.add(indexOfArtists.getInt("id"));
         }
-        System.out.println(LAST_INSERTED_ID_ARTIST);
+        //System.out.println(LAST_INSERTED_ID_ARTIST);
     }
 
 
 
-    public static void insertCard(String cardName,String cardImage,StringBuilder manaCost, int cmc, int cardNumber, String cardType, String rarity, int power, int toughness) throws SQLException, ClassNotFoundException {
+    public static void insertCard(String cardName, String cardImage, String manaCost, int cmc, int cardNumber, String cardType, String rarity, String power, String toughness) throws SQLException, ClassNotFoundException {
 
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
@@ -103,7 +107,7 @@ public abstract class DBConnect implements Credentials, Commands{
 
         //price w strukturze tabeli cards_expansions
         String sqlInsert = "INSERT INTO cards(card_name,card_image,mana_cost,converted_mana_cost,card_number,card_type,rarity,power,toughness)"+
-                            "VALUES("+cardName+","+cardImage+","+manaCost+","+cmc+","+cardNumber+","+cardType+","+rarity+","+power+","+toughness+");"+
+                            "VALUES(\""+cardName+"\",\""+cardImage+"\",\""+manaCost+"\","+cmc+","+cardNumber+",\""+cardType+"\",\""+rarity+"\",\""+power+"\",\""+toughness+"\");"+
                             "SELECT LAST_INSERT_ID() as Id;";
 
         stmt.executeUpdate(sqlInsert);
@@ -122,7 +126,7 @@ public abstract class DBConnect implements Credentials, Commands{
         stmt.executeUpdate("use mtg;");
 
 
-        BigDecimal priceBig = new BigDecimal("6.99");
+        BigDecimal priceBig = new BigDecimal(price);
         String sqlInsert = "INSERT INTO cards_expansion_connection(id_card,price,id_expansion) VALUES("+LAST_INSERTED_ID_CARD+","+priceBig+","+LAST_INSERTED_ID_EXPANSION+")";
         stmt.executeUpdate(sqlInsert);
     }
