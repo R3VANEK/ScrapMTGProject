@@ -178,4 +178,112 @@ public class Expansion {
 
         return cardString;
     }
+
+
+
+
+
+
+
+
+
+
+
+    private static void insertCardData(Elements cardsCompact, String expansionName, int cardIndex) throws IOException, SQLException, ClassNotFoundException {
+        Element compactCardDataRow = cardsCompact.get(cardIndex);
+
+        //pobieranie nazwy karty
+        String cardName=compactCardDataRow.select(".name.top>a").html();
+        Elements manaCosts = compactCardDataRow.select(".mana.top > img");
+        int cmc = 0;
+        StringBuilder manaCost = new StringBuilder();
+
+        //pobieranie kosztów many karty
+        //jeżeli dane przejdą w tego ifa, to znaczy, że karta jest landem, a landy nie mają kosztu rzucenia
+        //wydaje mi się, że takie rozwiązanie jest odrobinkę szybsze od pętli foreach bo w debugowaniu widać
+        //że przy każdym powtórzeniu java i tak musi określić pojedyńczy przedmiot
+        if(manaCosts.isEmpty()){
+            manaCost.append("0");
+        }
+        else{
+            for(int i = 0; i < manaCosts.size();i++){
+                Element img = manaCosts.get(i);
+                if(!StringUtil.isNumeric(img.attr("alt"))){
+                    manaCost.append(img.attr("alt").charAt(0));
+                    cmc+=1;
+                }
+                else{
+                    manaCost.append(img.attr("alt"));
+                    cmc+=Integer.parseInt(img.attr("alt"));
+                }
+            }
+        }
+
+        //pobieranie typu karty, np. creature, artefact, sorcery itp.
+        String cardType;
+        if(compactCardDataRow.select(".type.top").html().contains("-")){
+            String[] temp = compactCardDataRow.select(".type.top").html().split("\\s+");
+            cardType=temp[0];
+        }
+        else{
+            cardType=compactCardDataRow.select(".type.top").html();
+        }
+
+
+        //pobieranie statystyk karty, jeżeli jest to kreatura, to ma siłę i wytrzymałość
+        //w przeciwnym razie obie te wartości wpisuje się tu jako 0
+        Elements stats = compactCardDataRow.select(".numerical.top");
+        int power = 0;
+        int toughness = 0;
+        if(cardType.contains("Creature")){
+            power = Integer.parseInt(stats.get(0).html());
+            toughness = Integer.parseInt(stats.get(1).html());
+        }
+
+        //pobieranie rzadkości karty np. Common, Uncommon, Rare
+        String href = compactCardDataRow.select(".name.top>a").attr("abs:href");
+        Document cardDataDetailed = Jsoup.connect(href).get();
+        Elements rarityElements = cardDataDetailed.select("div.value>span");
+        String rarity = rarityElements.get(1).html();
+
+
+        //pobieranie artysty i numeru karty
+        String artists = cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html();
+        int cardNumber = Integer.parseInt(cardDataDetailed.select("[id$=\"numberRow\"]>div.value").get(0).html().replace("a",""));
+        //DBConnect.insertArtist(cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html());
+
+
+        //pobieranie odpowiedniego linku do cardMarketu, storny z cenami kart
+        String cardMarketUrl;
+        String cardNameToTest = cardDataDetailed.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentHeader_subtitleDisplay").html();
+        var replace = cardNameToTest.replace(' ', '-').replace('\'', '-').replace("//", "-");
+        cardMarketUrl = (cardNameToTest.contains("//")) ? cardNameToTest.replace(" ","").replace("//","-") : replace;
+
+        //pobieranie ceny karty
+        Document cardMarket = Jsoup.connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardMarketUrl).get();
+        Elements dd = cardMarket.select(".col-6");
+        String price = null;
+        for(Element single_dd : dd){
+            if(single_dd.text().contains("€")){
+                price = single_dd.html().replace("€", "").replace(",",".").replace(" ","");
+                break;
+            }
+        }
+
+        String cardImage = cardDataDetailed.select("img[id$=\"cardImage\"]").get(0).attr("abs:src");
+
+
+
+
+
+        //wstawianie fetchowanych danych do odpowiednich tabel w bazie danych
+        //normalnie skleiłbym wszystkie dane kart z pojedyńczego dodatku w jednego inserta
+        //ale uwzględniając relacyjną budowę bazy danych było koniecznie
+        //żeby przy każdym takim zestawie danych robić parę insertów
+        //inaczej nie dałoby się odwzorować odpowiednich powiązań między tabelami
+        DBConnect.insertCard(cardName,cardImage,manaCost,cmc,cardNumber,cardType,rarity,power,toughness);
+        DBConnect.insertArtist(artists);
+        DBConnect.insertCardExpansionConnection(expansionName,price);
+        DBConnect.insertCardArtistsConnection();
+    }
 }

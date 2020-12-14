@@ -37,7 +37,7 @@ public interface Commands {
 
     String sqlCardsExpansionConnection = "CREATE TABLE cards_expansion_connection"+
             "(id_card INTEGER,"+ // FOREIGN KEY
-            "price DECIMAL,"+ //karty mogą mieć różne ceny w zalezności od dodatku
+            "price DECIMAL(10,2),"+ //karty mogą mieć różne ceny w zalezności od dodatku
             "id_expansion INTEGER)"; //FOREIGN KEY
             //"FOREIGN KEY (id_card) REFERENCES cards(id_card),"+
             //"FOREIGN KEY (id_expansion) REFERENCES expansions(id_epxanison))";

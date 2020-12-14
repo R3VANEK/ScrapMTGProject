@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +14,24 @@ public class Main {
         System.out.println();
         if(DBConnect.checkDB()){
             System.out.println("ok jest baza");
-            DBConnect.insertArtist("Zoltan Boros");
+
+           /* DBConnect.insertCard
+                    (
+                    "\"Bala Ged Thief\"",
+                    "\"https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=197402&type=card\"",
+                    "\"3B\"",
+                    4,
+                    79,
+                    "\"Creature — Human Rogue Ally\"",
+                    "\"Rare\"",
+                    2,
+                    2
+                    );*/
+
+            DBConnect.insertArtist("Zoltan Boros &amp; John Doe");
+            DBConnect.insertExpansion("\"Zendikar\"");
+            DBConnect.insertCardExpansionConnection("\"Zendikar\"", "6.99");
+            DBConnect.insertCardArtistsConnection();
         }
         else{
             System.out.println("Hm, wygląda na to, że nie masz utworzonej bazy danych");
@@ -31,7 +49,7 @@ public class Main {
             Scanner scan = new Scanner(System.in);
             String chosenSets = scan.nextLine();
             ArrayList<String> setsArray = new ArrayList<>(Arrays.asList(chosenSets.split(",")));
-
+            DBConnect.insertExpansion(set);
             for(String set : setsArray){
                 try{
                     Expansion tempObj = new Expansion(set);
