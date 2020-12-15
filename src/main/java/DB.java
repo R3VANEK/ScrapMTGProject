@@ -10,7 +10,9 @@ public class DB extends DBConnect implements Expansion1 {
     private Statement stmt = null;
     private Connection conn = null;
 
-    public ArrayList<String> legalSets = new ArrayList<>();
+    public ArrayList<String> legalSets;
+    public boolean freshlyCreated = false;
+    public boolean hasExpansionsInDB = false;
 
     public DB() throws ClassNotFoundException, SQLException, IOException {
 
@@ -29,13 +31,20 @@ public class DB extends DBConnect implements Expansion1 {
         if(!DBConnect.checkDB()){
             this.createDB(this.stmt);
             this.legalSets = this.getExpansions();
+            this.freshlyCreated = true;
         }
         else{
+            //dodać ifa sprawdzającego czy expansionsImported ma wgl jakieś expansions
             ArrayList<String> expansionsImported = this.getExpansions(this.stmt);
             ArrayList<String> allExpansions = this.getExpansions();
-            allExpansions.removeAll(expansionsImported);
+            if(expansionsImported.size() != 0){
+                allExpansions.removeAll(expansionsImported);
+                this.hasExpansionsInDB = true;
+            }
             this.legalSets = allExpansions;
         }
+
+
 
 
 
@@ -48,6 +57,7 @@ public class DB extends DBConnect implements Expansion1 {
     }
 
     public void getExpansion(){
+        //główny hub do importowania dodatków, główna pętla
         System.out.println("tutaj coś będzie");
     }
 }

@@ -39,5 +39,6 @@ public interface Expansion1 {
             System.out.println(expansion);
         }
         System.out.println("---------------------------------------------------------------------");
+        System.out.println("");
     }
 }
