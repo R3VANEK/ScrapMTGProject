@@ -12,6 +12,8 @@ public class Main {
         System.out.println("Witamy w twoim asystencie do karcianki Magic The Gathering!");
         System.out.println("--------------------------------------------------------");
         System.out.println();
+
+        //to jest załatwione w klasie DB
         if(DBConnect.checkDB()){
             System.out.println("ok jest baza");
 

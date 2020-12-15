@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-abstract class Expansion {
+public class Expansion {
 
     private ArrayList<Card> cards;
     private String expansionName;

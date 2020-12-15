@@ -13,6 +13,7 @@ public abstract class DBConnect implements Credentials, Commands{
 
     protected void createDB(Statement stmt) throws SQLException {
 
+        System.out.println("Wygląda na to, że nie masz utworzonej wcześniej bazy danych, zaraz coś na to poradzimy :)");
         System.out.println("Tworzenie bazy danych i jej struktury...");
         stmt.executeUpdate(sqlCreateDB);
         stmt.executeUpdate("use mtg;");
