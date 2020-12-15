@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-public class Expansion {
+abstract class Expansion {
 
     private ArrayList<Card> cards;
     private String expansionName;
@@ -77,112 +77,6 @@ public class Expansion {
         }
         legalSets.remove(expansionName);
     }
-
-
-    public static StringBuilder getCard(Elements cardsCompact, String expansionName, int cardIndex) throws IOException, SQLException, ClassNotFoundException {
-
-        StringBuilder cardString = new StringBuilder();
-        cardString.append("(");
-        Element compactCardDataRow = cardsCompact.get(cardIndex);
-
-        //pobieranie nazwy karty
-        String cardName=compactCardDataRow.select(".name.top>a").html();
-        cardString.append(cardName).append(",");
-
-        Elements manaCosts = compactCardDataRow.select(".mana.top > img");
-        int cmc = 0;
-
-
-        //pobieranie kosztów many karty
-        //jeżeli dane przejdą w tego ifa, to znaczy, że karta jest landem, a landy nie mają kosztu rzucenia
-        if(manaCosts.isEmpty()){
-            cardString.append("0");
-        }
-        else{
-            for (Element img : manaCosts) {
-                if (!StringUtil.isNumeric(img.attr("alt"))) {
-                    cardString.append(img.attr("alt").charAt(0));
-                    cmc += 1;
-                } else {
-                    cardString.append(img.attr("alt"));
-                    cmc += Integer.parseInt(img.attr("alt"));
-                }
-            }
-        }
-        cardString.append(",").append(cmc).append(",");
-
-
-        //pobieranie typu karty
-        String type;
-        if(compactCardDataRow.select(".type.top").html().contains("-")){
-            String[] temp = compactCardDataRow.select(".type.top").html().split("\\s+");
-            type=temp[0];
-            cardString.append(type).append(",");
-
-        }
-        else{
-            type=compactCardDataRow.select(".type.top").html();
-            cardString.append(type).append(",");
-        }
-
-        //pobieranie statystyk karty, jeżeli jest to kreatura, to ma siłę i wytrzymałość
-        //w przeciwnym razie obie te wartości wpisuje się tu jako 0
-        Elements stats = compactCardDataRow.select(".numerical.top");
-        if(type.contains("Creature")){
-            cardString.append(stats.get(0).html()).append(",").append(stats.get(1).html()).append(",");
-        }
-        else{
-            cardString.append("0").append(",").append("0").append(",");
-        }
-
-
-        //pobieranie rzadkości karty
-        String href = compactCardDataRow.select(".name.top>a").attr("abs:href");
-        Document cardDataDetailed = Jsoup.connect(href).get();
-        Elements rarityElements = cardDataDetailed.select("div.value>span");
-        cardString.append(rarityElements.get(1).html()).append(",");
-
-        //pobieranie artysty i numeru karty
-
-        cardString.append(cardDataDetailed.select("[id$=\"numberRow\"]>div.value").get(0).html().replace("a","")).append(",");
-        cardString.append(cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html()).append(",");
-        DBConnect.insertArtist(cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html());
-        //do tego momentu jest ok
-
-
-        //tworzenie linku do cardmarketu, strony z cenami kart
-        String cardMarketUrl;
-        String cardNameToTest = cardDataDetailed.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentHeader_subtitleDisplay").html();
-        var replace = cardNameToTest.replace(' ', '-').replace('\'', '-').replace("//", "-");
-        cardMarketUrl = (cardNameToTest.contains("//")) ? cardNameToTest.replace(" ","").replace("//","-") : replace;
-
-        //pobieranie ceny karty
-        Document cardMarket = Jsoup.connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardMarketUrl).get();
-        Elements dd = cardMarket.select(".col-6");
-        String price = null;
-        for(Element single_dd : dd){
-            if(single_dd.text().contains("€")){
-                price = single_dd.html().replace("€", "").replace(",",".").replace(" ","");
-                break;
-            }
-        }
-        cardString.append(price).append(",");
-
-
-        //pobieranie url do obrazka karty
-        String imageUrl = cardDataDetailed.select("img[id$=\"cardImage\"]").get(0).attr("abs:src");
-        cardString.append(imageUrl).append(")");
-
-        return cardString;
-    }
-
-
-
-
-
-
-
-
 
 
 

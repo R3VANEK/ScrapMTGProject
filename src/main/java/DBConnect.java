@@ -11,22 +11,15 @@ public abstract class DBConnect implements Credentials, Commands{
     private static Integer LAST_INSERTED_ID_CARD=null;
     private static ArrayList<Integer> LAST_INSERTED_ID_ARTIST=new ArrayList<>();
 
-    public static void createDB() throws ClassNotFoundException, SQLException {
+    protected void createDB(Statement stmt) throws SQLException {
 
-        Class.forName(JDBC_DRIVER);
-        
-       // System.out.println("łączenie z xamppem...");
-        Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-        System.out.println("tworzenie struktury bazy danych...");
-        Statement stmt = conn.createStatement();
-
+        System.out.println("Tworzenie bazy danych i jej struktury...");
         stmt.executeUpdate(sqlCreateDB);
         stmt.executeUpdate("use mtg;");
         for(String sqlCommand : sqlStructure){
             stmt.executeUpdate(sqlCommand);
         }
-
-        //System.out.println("Utworzone bazę danych");
+        System.out.println("Utworzono bazę danych");
     }
 
     public static boolean checkDB() throws ClassNotFoundException, SQLException {
@@ -79,21 +72,18 @@ public abstract class DBConnect implements Credentials, Commands{
             sqlSelect1 = "SELECT id_artist as id from artists order by id_artist desc limit 2";
         }
         else{
-            //niektórzy nie mają imienia i nazwiska a pseudonimy
             sqlInsert1 = "INSERT INTO artists(name)"+
                                 "VALUES("+"\""+artists+"\")";
-            sqlSelect1 = "SELECT MAX(id_artist) as id FROM artists";
+            sqlSelect1 = "SELECT id_artist as id FROM artists WHERE name=\""+artists+"\"";
         }
 
 
-        //System.out.println(sqlInsert1);
         stmt.executeUpdate(sqlInsert1);
         ResultSet indexOfArtists = stmt.executeQuery(sqlSelect1);
         LAST_INSERTED_ID_ARTIST.clear();
         while(indexOfArtists.next()){
             LAST_INSERTED_ID_ARTIST.add(indexOfArtists.getInt("id"));
         }
-        //System.out.println(LAST_INSERTED_ID_ARTIST);
     }
 
 
@@ -137,6 +127,8 @@ public abstract class DBConnect implements Credentials, Commands{
         Statement stmt = conn.createStatement();
         stmt.executeUpdate("use mtg;");
 
+
+        // to może spowodować błędy jeżeli mamy już takiego artystę
         String sqlInsert1 = "INSERT INTO cards_artists_connection(id_card,id_artist) VALUES("+LAST_INSERTED_ID_CARD+","+LAST_INSERTED_ID_ARTIST.get(0)+")";
         if(LAST_INSERTED_ID_ARTIST.size() > 1){
             sqlInsert1 += ",("+LAST_INSERTED_ID_CARD+","+LAST_INSERTED_ID_ARTIST.get(1)+")";

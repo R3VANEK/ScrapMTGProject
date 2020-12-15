@@ -42,7 +42,10 @@ public class Main {
             System.out.println("( Wpisz nazwę dodatków po przecinku np. Amonkhet,Dominaria żeby importować wybrane zestawy )");
             System.out.println();
 
-            DBConnect.createDB();
+            //DBConnect.createDB();
+
+            DB databaseObject = new DB();
+
             Expansion.printExpansions();
 
             System.out.println("Jakie zestawy chcesz zaimportować? : ");
