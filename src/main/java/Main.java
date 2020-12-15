@@ -14,7 +14,6 @@ public class Main{
         DB database = new DB();
 
 
-        //nieważne że została dopiero utworzona, ważne czy wgl ma w sobie jakieś dodatki
         if(!database.hasExpansionsInDB){
             //obowiązkowy import dodatków
             database.printExpansions(database.legalSets);
@@ -22,7 +21,7 @@ public class Main{
             System.out.println("Powyżej wyświetliły się wszystkie dostępne dodatki, z których karty możesz pobrać");
             System.out.println("Wpisz ich dokładne nazwy poniżej po przecinku np. Amonkhet,Welcome Deck 2016");
             Scanner scan = new Scanner(System.in);
-            scan.nextLine();
+            database.getGivenExpansions(scan.nextLine());
 
         }
         else{

@@ -9,7 +9,7 @@ import java.util.Scanner;
 public class TempDumpForCode{
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException {
-        System.out.println("--------------------------------------------------------");
+        /*System.out.println("--------------------------------------------------------");
         System.out.println("Witamy w twoim asystencie do karcianki Magic The Gathering!");
         System.out.println("--------------------------------------------------------");
         System.out.println();
@@ -18,7 +18,7 @@ public class TempDumpForCode{
         if(DBConnect.checkDB()){
             System.out.println("ok jest baza");
 
-           /* DBConnect.insertCard
+           DBConnect.insertCard
                     (
                     "\"Bala Ged Thief\"",
                     "\"https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=197402&type=card\"",
@@ -34,7 +34,7 @@ public class TempDumpForCode{
             DBConnect.insertArtist("Zoltan Boros &amp; John Doe");
             DBConnect.insertExpansion("\"Zendikar\"");
             DBConnect.insertCardExpansionConnection("\"Zendikar\"", "6.99");
-            DBConnect.insertCardArtistsConnection();*/
+            DBConnect.insertCardArtistsConnection();
         }
         else{
             System.out.println("Hm, wygląda na to, że nie masz utworzonej bazy danych");
@@ -63,9 +63,8 @@ public class TempDumpForCode{
                 } catch(IllegalArgumentException | IOException e){
                     System.out.println(e.getMessage());
                 }
-
             }
-        }
+        }*/
 
     }
 }

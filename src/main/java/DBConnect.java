@@ -37,7 +37,7 @@ public abstract class DBConnect implements Credentials, Commands{
         return !wynik.isBlank() || !wynik.isEmpty();
     }
 
-    public static void insertExpansion(String expansionName) throws SQLException, ClassNotFoundException {
+    protected void insertExpansion(String expansionName) throws SQLException, ClassNotFoundException {
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
         Statement stmt = conn.createStatement();

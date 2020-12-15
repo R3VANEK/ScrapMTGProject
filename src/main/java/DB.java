@@ -4,8 +4,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 
-public class DB extends DBConnect implements Expansion1 {
+public class DB extends DBConnect implements Expansion1{
 
     private Statement stmt = null;
     private Connection conn = null;
@@ -21,7 +22,6 @@ public class DB extends DBConnect implements Expansion1 {
         Class.forName(JDBC_DRIVER);
         this.conn = DriverManager.getConnection(DB_URL, USER, PASS);
         this.stmt = conn.createStatement();
-
 
         //tworzenie bazy danych
         //importowanie dostępnych dodatków
@@ -43,21 +43,37 @@ public class DB extends DBConnect implements Expansion1 {
             }
             this.legalSets = allExpansions;
         }
-
-
-
-
-
-
-
     }
+
+
+
+    public void getGivenExpansions(String chosenExpansionsString) throws SQLException, ClassNotFoundException {
+
+        ArrayList<String> setsArray = new ArrayList<>(Arrays.asList(chosenExpansionsString.split(",")));
+
+        for(String set : setsArray){
+            this.insertExpansion(set);
+            try{
+                //pobiera pojedyńczy dodatek i zabiera go z legalSets
+                //żeby nie dało się go jeszcze raz zaimportować (zdublwoać)
+                this.getSingleExpansion(set, this.legalSets);
+                this.legalSets.remove(set);
+
+            } catch(IllegalArgumentException | IOException e){
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+
+
+
+
+
 
     public void updatePrices(){
         System.out.println("tutaj coś będzie");
     }
 
-    public void getExpansion(){
-        //główny hub do importowania dodatków, główna pętla
-        System.out.println("tutaj coś będzie");
-    }
+
 }
