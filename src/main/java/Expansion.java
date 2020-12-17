@@ -44,12 +44,12 @@ public interface Expansion {
     }
 
 
-    default void getSingleExpansion(String expansionName, ArrayList<String> legalSets) throws IOException {
+    default void getSingleExpansion(String expansionName, ArrayList<String> legalSets) throws IOException, SQLException, ClassNotFoundException {
 
         if(!legalSets.contains(expansionName)){
             throw new IllegalArgumentException("Wpisano złą nazwę zestawu, pomijanie dodawania zestawu \""+expansionName+"\"");
         }
-
+        DBConnect.insertExpansion(expansionName);
         //przygotowania
         System.out.println(new String(new char[50]).replace("\0", "\r\n"));
         int page = 0, cardIndex = 0;
@@ -77,7 +77,7 @@ public interface Expansion {
                 i-=1;
 
                 //oby nigdy nie wywaliło tych błędów
-            } catch (SQLException | IOException | ClassNotFoundException errorFatal){
+            } catch (IOException | ClassNotFoundException errorFatal){
                 errorFatal.getMessage();
             }
         }
@@ -150,7 +150,7 @@ public interface Expansion {
         String cardMarketUrl;
         String cardNameToTest = cardDataDetailed.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentHeader_subtitleDisplay").html();
         var replace = cardNameToTest.replace(' ', '-').replace('\'', '-').replace("//", "-");
-        cardMarketUrl = (cardNameToTest.contains("//")) ? cardNameToTest.replace(" ","").replace("//","-") : replace;
+        cardMarketUrl = (cardNameToTest.contains("//")) ? cardNameToTest.replace(" ","").replace("//","-").replace(":","") : replace;
 
 
         //pobieranie ceny karty

@@ -19,7 +19,7 @@ public interface Commands {
             "converted_mana_cost INTEGER NOT NULL,"+
             "card_number INTEGER NOT NULL,"+
             "card_type VARCHAR(40) NOT NULL,"+
-            "rarity VARCHAR(8) NOT NULL,"+
+            "rarity VARCHAR(11) NOT NULL,"+
             "power VARCHAR(4) NOT NULL,"+
             "toughness VARCHAR(4) NOT NULL,"+
             "PRIMARY KEY ( id_card ))";
@@ -31,7 +31,7 @@ public interface Commands {
 
     String sqlArtists = "CREATE TABLE artists"+
                                         "(id_artist INTEGER NOT NULL AUTO_INCREMENT,"+
-                                        "name VARCHAR(60) NOT NULL,"+
+                                        "name VARCHAR(60) NOT NULL UNIQUE,"+
                                         "PRIMARY KEY ( id_artist ))";
 
     String sqlCardsExpansionConnection = "CREATE TABLE cards_expansion_connection"+

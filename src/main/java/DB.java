@@ -60,7 +60,7 @@ public class DB extends DBConnect implements Expansion{
         ArrayList<String> setsArray = new ArrayList<>(Arrays.asList(chosenExpansionsString.split(",")));
 
         for(String set : setsArray){
-            this.insertExpansion(set);
+
             try{
                 //pobiera pojedyńczy dodatek i zabiera go z legalSets
                 //żeby nie dało się go jeszcze raz zaimportować (zdublwoać)
@@ -80,7 +80,8 @@ public class DB extends DBConnect implements Expansion{
 
 
     public void updatePrices(){
-        System.out.println("tutaj coś będzie");
+
+
     }
 
 
