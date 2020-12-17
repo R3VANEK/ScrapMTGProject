@@ -11,6 +11,9 @@ public abstract class DBConnect implements Credentials, Commands{
     private static Integer LAST_INSERTED_ID_CARD=null;
     private static ArrayList<Integer> LAST_INSERTED_ID_ARTIST=new ArrayList<>();
 
+
+
+
     protected void createDB(Statement stmt) throws SQLException {
 
         System.out.println("Wygląda na to, że nie masz utworzonej wcześniej bazy danych, zaraz coś na to poradzimy :)");
@@ -136,4 +139,5 @@ public abstract class DBConnect implements Credentials, Commands{
         }
         stmt.executeUpdate(sqlInsert1);
     }
+
 }

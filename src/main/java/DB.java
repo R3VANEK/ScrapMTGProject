@@ -6,14 +6,16 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class DB extends DBConnect implements Expansion1{
+public class DB extends DBConnect implements Expansion{
 
     private Statement stmt = null;
     private Connection conn = null;
 
     public ArrayList<String> legalSets;
-    public boolean freshlyCreated = false;
-    public boolean hasExpansionsInDB = false;
+
+
+    //to jest sprawdzane tylko przy tworzeniu
+    private boolean hasExpansionsInDB = false;
 
     public DB() throws ClassNotFoundException, SQLException, IOException {
 
@@ -31,7 +33,6 @@ public class DB extends DBConnect implements Expansion1{
         if(!DBConnect.checkDB()){
             this.createDB(this.stmt);
             this.legalSets = this.getExpansions();
-            this.freshlyCreated = true;
         }
         else{
             //dodać ifa sprawdzającego czy expansionsImported ma wgl jakieś expansions
@@ -45,6 +46,13 @@ public class DB extends DBConnect implements Expansion1{
         }
     }
 
+
+    public void setHasExpansionsInDB(boolean newValue){
+        this.hasExpansionsInDB = newValue;
+    }
+    public boolean getHasExpansionsInDB(){
+        return this.hasExpansionsInDB;
+    }
 
 
     public void getGivenExpansions(String chosenExpansionsString) throws SQLException, ClassNotFoundException {

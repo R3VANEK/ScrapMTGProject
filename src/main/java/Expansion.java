@@ -5,94 +5,97 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
-public class Expansion {
+public interface Expansion {
 
-    private ArrayList<Card> cards;
-    private String expansionName;
-    private static ArrayList<String> legalSets = new ArrayList<>();
+    default ArrayList<String> getExpansions(Statement stmt) throws SQLException {
 
-    public static void printExpansions() throws IOException {
-
-        //teoretycznie nie łapie przypadku kiedy ktoś ma wszystkie dodatki zaimportowane
-        //trzeba potem dodać drugiego ifa który zczytuje ekspansje z bazy danych
-
-        if(legalSets.isEmpty() ){
-            ArrayList<String> temp = new ArrayList<>();
-            System.out.println("--------------------------------------------------------");
-            Document doc = Jsoup.connect("https://gatherer.wizards.com/Pages/Default.aspx").get();
-            Elements setTags = doc.select("select[id=ctl00_ctl00_MainContent_Content_SearchControls_setAddText] > option[value]:not([value=\"\"])");
-            for(Element option : setTags){
-                System.out.println(option.html());
-                temp.add(option.html());
-            }
-            legalSets = temp;
+        ArrayList<String> temp = new ArrayList<>();
+        stmt.executeUpdate("use mtg;");
+        ResultSet expansions = stmt.executeQuery("select expansion_name from expansions");
+        while(expansions.next()){
+            temp.add(expansions.getString("expansion_name"));
         }
-        else{
-            System.out.println("--------------------------------------------------------");
-            for(String expansion : legalSets){
-                System.out.println(expansion);
-            }
-        }
-        System.out.println("--------------------------------------------------------");
-
+        return temp;
     }
 
-    public Expansion(String expansionName) throws IOException {
+    default ArrayList<String> getExpansions() throws IOException {
 
-        this.expansionName = expansionName;
+        ArrayList<String> temp = new ArrayList<>();
+        Document doc = Jsoup.connect("https://gatherer.wizards.com/Pages/Default.aspx").get();
+        Elements setTags = doc.select("select[id=ctl00_ctl00_MainContent_Content_SearchControls_setAddText] > option[value]:not([value=\"\"])");
+        for(Element option : setTags){
+            temp.add(option.html());
+        }
+        return temp;
+    }
+
+    default void printExpansions(ArrayList<String> legalSets){
+        System.out.println("---------------------------------------------------------------------");
+        for(String expansion : legalSets){
+            System.out.println(expansion);
+        }
+        System.out.println("---------------------------------------------------------------------");
+        System.out.println("");
+    }
+
+
+    default void getSingleExpansion(String expansionName, ArrayList<String> legalSets) throws IOException {
+
         if(!legalSets.contains(expansionName)){
             throw new IllegalArgumentException("Wpisano złą nazwę zestawu, pomijanie dodawania zestawu \""+expansionName+"\"");
         }
 
+        //przygotowania
         System.out.println(new String(new char[50]).replace("\0", "\r\n"));
-        int page = 0;
-        Document mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page="+ page +"&output=compact&set=["+this.expansionName+"]").get();
+        int page = 0, cardIndex = 0;
+        Document mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page="+ page +"&output=compact&set=["+expansionName+"]").get();
         Elements cardsCompact = mainSite.select(".cardItem");
-
         int numberOfCards = Integer.parseInt(mainSite.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentHeader_searchTermDisplay").html().split("\\(")[1].replace("(","").replace(")",""));
-        int cardIndex = 0;
-
-        System.out.println("Importowanie kart z dodatku "+this.expansionName+" trwa...");
 
 
+        System.out.println("Importowanie kart z dodatku "+expansionName+" trwa...");
+        //główna pętla pobierająca wszystkie karty z jednego dodatku
         for(int i = 1; i<numberOfCards+1;i++){
             try{
                 System.out.print(i+"/"+numberOfCards+"\r");
-
-                insertCardData(cardsCompact,expansionName,cardIndex);
+                getScrapDataCard(cardsCompact,expansionName,cardIndex);
                 cardIndex+=1;
             }
-            catch(IndexOutOfBoundsException | SQLException | ClassNotFoundException e){
-                e.getMessage();
+
+            //normalny błąd wykorzystywany żeby przechodzić
+            //do nowych zakładek scrapowanej strony
+            catch(IndexOutOfBoundsException e){
                 page+=1;
-                // haha specjalne znaczki go brrrrr Aether
                 mainSite = Jsoup.connect("https://gatherer.wizards.com/Pages/Search/Default.aspx?page="+page+"&output=compact&set=["+expansionName+"]").get();
                 cardsCompact = mainSite.select(".cardItem");
                 cardIndex = 0;
                 i-=1;
+
+                //oby nigdy nie wywaliło tych błędów
+            } catch (SQLException | IOException | ClassNotFoundException errorFatal){
+                errorFatal.getMessage();
             }
         }
-        legalSets.remove(expansionName);
     }
 
 
 
-    private static void insertCardData(Elements cardsCompact, String expansionName, int cardIndex) throws IOException, SQLException, ClassNotFoundException {
+
+    //pobieranie pojedyńczych kart
+    default void getScrapDataCard(Elements cardsCompact, String expansionName, int cardIndex) throws IOException, SQLException, ClassNotFoundException {
+
         Element compactCardDataRow = cardsCompact.get(cardIndex);
-
-
         String cardName, cardType, rarity, artists, cardImage, price = null, manaCost="", power = "0",toughness = "0";
         int cardNumber, cmc=0;
-
 
         //pobieranie nazwy karty
         cardName=compactCardDataRow.select(".name.top>a").html();
         Elements manaCosts = compactCardDataRow.select(".mana.top > img");
-
-
 
         //pobieranie kosztów many karty
         //jeżeli dane przejdą w tego ifa, to znaczy, że karta jest landem, a landy nie mają kosztu rzucenia
@@ -122,7 +125,6 @@ public class Expansion {
             cardType=compactCardDataRow.select(".type.top").html();
         }
 
-
         //pobieranie statystyk karty, jeżeli jest to kreatura, to ma siłę i wytrzymałość
         //w przeciwnym razie obie te wartości wpisuje się tu jako 0
         Elements stats = compactCardDataRow.select(".numerical.top");
@@ -150,6 +152,7 @@ public class Expansion {
         var replace = cardNameToTest.replace(' ', '-').replace('\'', '-').replace("//", "-");
         cardMarketUrl = (cardNameToTest.contains("//")) ? cardNameToTest.replace(" ","").replace("//","-") : replace;
 
+
         //pobieranie ceny karty
         Document cardMarket = Jsoup.connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardMarketUrl).get();
         Elements dd = cardMarket.select(".col-6");
@@ -160,10 +163,8 @@ public class Expansion {
             }
         }
 
+        //pobieranie linku do obrazka karty
         cardImage = cardDataDetailed.select("img[id$=\"cardImage\"]").get(0).attr("abs:src");
-
-
-
 
 
         //wstawianie fetchowanych danych do odpowiednich tabel w bazie danych
@@ -171,9 +172,13 @@ public class Expansion {
         //ale uwzględniając relacyjną budowę bazy danych było koniecznie
         //żeby przy każdym takim zestawie danych robić parę insertów
         //inaczej nie dałoby się odwzorować odpowiednich powiązań między tabelami
+        //w idealnym świecie, wstawiałbym te rekordu trochę bliżej klasy DB
+        //ale nie mam na ten moment lepszego pomysłu jak to uporządkować
         DBConnect.insertCard(cardName,cardImage,manaCost,cmc,cardNumber,cardType,rarity,power,toughness);
         DBConnect.insertArtist(artists);
         DBConnect.insertCardExpansionConnection(expansionName,price);
         DBConnect.insertCardArtistsConnection();
     }
+
+
 }
