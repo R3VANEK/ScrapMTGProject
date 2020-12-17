@@ -1,3 +1,4 @@
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Document;
@@ -9,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public interface Expansion {
 
@@ -62,6 +64,7 @@ public interface Expansion {
         //główna pętla pobierająca wszystkie karty z jednego dodatku
         for(int i = 1; i<numberOfCards+1;i++){
             try{
+                TimeUnit.SECONDS.sleep(1);
                 System.out.print(i+"/"+numberOfCards+"\r");
                 getScrapDataCard(cardsCompact,expansionName,cardIndex);
                 cardIndex+=1;
@@ -79,6 +82,8 @@ public interface Expansion {
                 //oby nigdy nie wywaliło tych błędów
             } catch (IOException | ClassNotFoundException errorFatal){
                 errorFatal.getMessage();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -154,14 +159,24 @@ public interface Expansion {
 
 
         //pobieranie ceny karty
-        Document cardMarket = Jsoup.connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardMarketUrl).get();
+        /*if(cardName.contains("Arbalest Elite")){
+            System.out.println(cardName);
+        }*/
+
+        Document cardMarket = Jsoup
+                .connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardMarketUrl)
+                .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.21 (KHTML, like Gecko) Chrome/19.0.1042.0 Safari/535.21")
+                .get();
+
         Elements dd = cardMarket.select(".col-6");
+
         for(Element single_dd : dd){
             if(single_dd.text().contains("€")){
                 price = single_dd.html().replace("€", "").replace(",",".").replace(" ","");
                 break;
             }
         }
+
 
         //pobieranie linku do obrazka karty
         cardImage = cardDataDetailed.select("img[id$=\"cardImage\"]").get(0).attr("abs:src");

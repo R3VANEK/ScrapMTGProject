@@ -1,3 +1,4 @@
+import javax.swing.plaf.nimbus.State;
 import javax.xml.transform.Result;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -186,6 +187,10 @@ public abstract class DBConnect implements Credentials, Commands{
         //ten błąd powoduje często znaczek Æ w nazwach kart
         //mógłbym to naprawić, ale zajęłoby mi to za dużo czasu, na razie dopuszczam w bazie
         //możliwość ustawiania nulla w cenach kart gdyby prawidłowo nie odczytano ceny
+
+        //kolejna możliwość dlaczego w bazie jest tyle nulli jest po prostu zakorkowanie zstrony cardMarket
+        //gdy czas na odpowiedź zapytania jest przekorszona automatycznie zostaje tam null
+        //przed tym nie da się uchronić, ale zawsze można próbowac uaktualnić cenę kart
         catch(NullPointerException e){
             priceBig = null;
         }
@@ -207,6 +212,11 @@ public abstract class DBConnect implements Credentials, Commands{
         }
         stmt.executeUpdate(sqlInsert1);
         conn.close();
+    }
+
+
+    public ResultSet getCardsToUpdatePrice(Statement stmt) throws SQLException {
+        return stmt.executeQuery("SELECT cards.card_name,cards_expansion_connection.price,expansions.expansion_name from cards inner join cards_expansion_connection on cards.id_card = cards_expansion_connection.id_card inner join expansions on cards_expansion_connection.id_expansion = expansions.id_expansion");
     }
 
 
