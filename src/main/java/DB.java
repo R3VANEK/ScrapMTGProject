@@ -1,10 +1,8 @@
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 public class DB extends DBConnect implements Expansion{
 
@@ -73,16 +71,16 @@ public class DB extends DBConnect implements Expansion{
         }
     }
 
-
-
-
-
-
-
-    public void updatePrices(){
-
-
+    public Statement getStmt(){
+        return this.stmt;
     }
+
+
+
+
+
+
+
 
 
 }

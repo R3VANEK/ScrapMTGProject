@@ -1,9 +1,11 @@
 import javax.swing.plaf.nimbus.State;
 import javax.xml.transform.Result;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 
 public abstract class DBConnect implements Credentials, Commands{
@@ -216,8 +218,79 @@ public abstract class DBConnect implements Credentials, Commands{
 
 
     public ResultSet getCardsToUpdatePrice(Statement stmt) throws SQLException {
-        return stmt.executeQuery("SELECT cards.card_name,cards_expansion_connection.price,expansions.expansion_name from cards inner join cards_expansion_connection on cards.id_card = cards_expansion_connection.id_card inner join expansions on cards_expansion_connection.id_expansion = expansions.id_expansion");
+        return stmt.executeQuery("select cards.id_card, cards.card_name, cards_expansion_connection.price, expansions.expansion_name, expansions.id_expansion from cards inner join cards_expansion_connection on cards.id_card = cards_expansion_connection.id_card inner join expansions on cards_expansion_connection.id_expansion = expansions.id_expansion");
     }
+
+    public int getNumberCardsToUpdate() throws SQLException, ClassNotFoundException {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+        Statement stmt = conn.createStatement();
+        stmt.executeUpdate("use mtg;");
+        ResultSet results = stmt.executeQuery("select count(*) as liczba from cards_expansion_connection");
+        int numberOfCards = 0;
+        while(results.next()){
+            numberOfCards = results.getInt("liczba");
+        }
+        results.close();
+        stmt.close();
+        conn.close();
+        return  numberOfCards;
+    }
+
+    public void updatePriceDB(String price, int cardId, int expansionId) throws SQLException, ClassNotFoundException {
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+        Statement stmt = conn.createStatement();
+        stmt.executeUpdate("use mtg;");
+
+        BigDecimal priceBig;
+        try{
+            priceBig = new BigDecimal(price);
+        }catch(NullPointerException e){
+            priceBig = null;
+        }
+
+        String sql = "UPDATE cards_expansion_connection SET price="+priceBig+" WHERE id_card="+cardId+" AND id_expansion="+expansionId;
+        stmt.executeUpdate(sql);
+        stmt.close();
+        conn.close();
+    }
+
+
+    public void updatePrices() throws SQLException, InterruptedException, IOException, ClassNotFoundException {
+
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
+        Statement stmt = conn.createStatement();
+        stmt.executeUpdate("use mtg;");
+
+        ResultSet results = stmt.executeQuery("select cards.id_card, cards.card_name, cards_expansion_connection.price, expansions.expansion_name, expansions.id_expansion from cards inner join cards_expansion_connection on cards.id_card = cards_expansion_connection.id_card inner join expansions on cards_expansion_connection.id_expansion = expansions.id_expansion");
+
+        int i = 0;
+
+        System.out.println("Trwa aktualizowanie cen kart, proszę czekać...");
+        while(results.next()){
+            TimeUnit.SECONDS.sleep(2);
+            System.out.print(i+"/"+getNumberCardsToUpdate()+"\r");
+            i+=1;
+            String price = Expansion.fetchUpdatePrice(
+                    results.getString("card_name"),
+                    results.getString("expansion_name"));
+
+            String oldPrice = String.valueOf(results.getBigDecimal("price"));
+            try{
+                if(price.compareTo(oldPrice) != 0){
+                    System.out.println("znaleziono różnice cen karty "+results.getString("card_name"));
+                    this.updatePriceDB(price, results.getInt("id_card"), results.getInt("id_expansion"));
+                }
+            } catch(NullPointerException ignored){}
+
+        }
+
+
+    }
+
+
 
 
 

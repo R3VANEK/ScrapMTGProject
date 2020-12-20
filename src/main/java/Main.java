@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 public class Main{
 
-    public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException {
+    public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException, InterruptedException {
 
         System.out.println("--------------------------------------------------------");
         System.out.println("Witamy w twoim asystencie do karcianki Magic The Gathering!");
@@ -50,7 +50,7 @@ public class Main{
                     database.getGivenExpansions(scan.nextLine());
                 }
                 else if(userChoice.contains("2")){
-
+                    System.out.println(new String(new char[50]).replace("\0", "\r\n"));
                     database.updatePrices();
                 }
 

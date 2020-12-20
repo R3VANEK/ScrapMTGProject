@@ -196,4 +196,27 @@ public interface Expansion {
     }
 
 
+    static String fetchUpdatePrice(String cardName, String expansionName) throws IOException {
+        String cardMarketUrl,price = null;
+        var replace = cardName.replace(' ', '-').replace('\'', '-').replace("//", "-");
+        cardMarketUrl = (cardName.contains("//")) ? cardName.replace(" ","").replace("//","-").replace(":","") : replace;
+
+        Document cardMarket = Jsoup
+                .connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardMarketUrl)
+                .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.21 (KHTML, like Gecko) Chrome/19.0.1042.0 Safari/535.21")
+                .get();
+
+        Elements dd = cardMarket.select(".col-6");
+
+        for(Element single_dd : dd){
+            if(single_dd.text().contains("€")){
+                price = single_dd.html().replace("€", "").replace(",",".").replace(" ","");
+                break;
+            }
+        }
+        return price;
+    }
+
+
+
 }
