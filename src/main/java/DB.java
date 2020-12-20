@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-public class DB extends DBConnect implements Expansion{
+public class DB extends DBConnect implements Scraping{
 
     private Statement stmt = null;
     private Connection conn = null;
@@ -15,14 +15,19 @@ public class DB extends DBConnect implements Expansion{
     //to jest sprawdzane tylko przy tworzeniu
     private boolean hasExpansionsInDB = false;
 
-    public DB() throws ClassNotFoundException, SQLException, IOException {
+    public void setHasExpansionsInDB(boolean newValue){
+        this.hasExpansionsInDB = newValue;
+    }
+    public boolean getHasExpansionsInDB(){
+        return this.hasExpansionsInDB;
+    }
 
+    public DB() throws ClassNotFoundException, SQLException, IOException {
         //nawiązywanie połączenia
         System.out.println("Łączenie z xampem...");
         Class.forName(JDBC_DRIVER);
         this.conn = DriverManager.getConnection(DB_URL, USER, PASS);
         this.stmt = conn.createStatement();
-
         //tworzenie bazy danych
         //importowanie dostępnych dodatków
         //w przypadku nowej bazy będą to wszystkie zestawy
@@ -45,20 +50,10 @@ public class DB extends DBConnect implements Expansion{
     }
 
 
-    public void setHasExpansionsInDB(boolean newValue){
-        this.hasExpansionsInDB = newValue;
-    }
-    public boolean getHasExpansionsInDB(){
-        return this.hasExpansionsInDB;
-    }
-
-
     public void getGivenExpansions(String chosenExpansionsString) throws SQLException, ClassNotFoundException {
 
         ArrayList<String> setsArray = new ArrayList<>(Arrays.asList(chosenExpansionsString.split(",")));
-
         for(String set : setsArray){
-
             try{
                 //pobiera pojedyńczy dodatek i zabiera go z legalSets
                 //żeby nie dało się go jeszcze raz zaimportować (zdublwoać)
@@ -69,10 +64,6 @@ public class DB extends DBConnect implements Expansion{
                 System.out.println(e.getMessage());
             }
         }
-    }
-
-    public Statement getStmt(){
-        return this.stmt;
     }
 
 

@@ -1,4 +1,3 @@
-import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.internal.StringUtil;
 import org.jsoup.nodes.Document;
@@ -12,10 +11,14 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-public interface Expansion {
+public interface Scraping {
 
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //2 METODY NA POZYSKIWANIE INFORMACJI O DODATKACH
+    //CO PRAWDA JEDNA Z NICH WYKORZYSTUJE POŁĄCZENIE Z DB
+    //ALE UZNAŁEM, ŻE BARDZIEJ CZYTELNE BĘDZIE POZOSTAWIENIE JEJ TUTAJ
     default ArrayList<String> getExpansions(Statement stmt) throws SQLException {
-
         ArrayList<String> temp = new ArrayList<>();
         stmt.executeUpdate("use mtg;");
         ResultSet expansions = stmt.executeQuery("select expansion_name from expansions");
@@ -26,7 +29,6 @@ public interface Expansion {
     }
 
     default ArrayList<String> getExpansions() throws IOException {
-
         ArrayList<String> temp = new ArrayList<>();
         Document doc = Jsoup.connect("https://gatherer.wizards.com/Pages/Default.aspx").get();
         Elements setTags = doc.select("select[id=ctl00_ctl00_MainContent_Content_SearchControls_setAddText] > option[value]:not([value=\"\"])");
@@ -35,6 +37,8 @@ public interface Expansion {
         }
         return temp;
     }
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
     default void printExpansions(ArrayList<String> legalSets){
         System.out.println("---------------------------------------------------------------------");
@@ -42,10 +46,17 @@ public interface Expansion {
             System.out.println(expansion);
         }
         System.out.println("---------------------------------------------------------------------");
-        System.out.println("");
+        System.out.println();
     }
 
 
+
+
+
+
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //GŁÓWNA METODA "HUB" DO PĘTLI POZYSKIWANIA INFORMAJCI O KARTACH Z DANEGO DODATKU
     default void getSingleExpansion(String expansionName, ArrayList<String> legalSets) throws IOException, SQLException, ClassNotFoundException {
 
         if(!legalSets.contains(expansionName)){
@@ -91,11 +102,12 @@ public interface Expansion {
 
 
 
-    //pobieranie pojedyńczych kart
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //POBIERANIE WSZYSTKICH NIEZBEDNYCH INFORMAJCI O POJEDYŃCZEJ AKRCIE, A TAKŻE POD KONIEC WSTAWIANIE INFORMACJI DO DB
     default void getScrapDataCard(Elements cardsCompact, String expansionName, int cardIndex) throws IOException, SQLException, ClassNotFoundException {
 
         Element compactCardDataRow = cardsCompact.get(cardIndex);
-        String cardName, cardType, rarity, artists, cardImage, price = null, manaCost="", power = "0",toughness = "0";
+        String cardName, cardType, rarity, artists, cardImage, price, manaCost="", power = "0",toughness = "0";
         int cardNumber, cmc=0;
 
         //pobieranie nazwy karty
@@ -151,31 +163,12 @@ public interface Expansion {
         //DBConnect.insertArtist(cardDataDetailed.select("[id$=\"ArtistCredit\"]>a").get(0).html());
 
 
-        //pobieranie odpowiedniego linku do cardMarketu, storny z cenami kart
-        String cardMarketUrl;
-        String cardNameToTest = cardDataDetailed.select("#ctl00_ctl00_ctl00_MainContent_SubContent_SubContentHeader_subtitleDisplay").html();
-        var replace = cardNameToTest.replace(' ', '-').replace('\'', '-').replace("//", "-");
-        cardMarketUrl = (cardNameToTest.contains("//")) ? cardNameToTest.replace(" ","").replace("//","-").replace(":","") : replace;
-
-
         //pobieranie ceny karty
-        /*if(cardName.contains("Arbalest Elite")){
-            System.out.println(cardName);
-        }*/
+        //jedyna odilozowana metoda do tego
+        //powód : wykorzystuje ten sam kod do uaktualniania cen, więc
+        //przydaje sie tez poza tą specyficzną metodą
+        price = Scraping.fetchUpdatePrice(cardName,expansionName);
 
-        Document cardMarket = Jsoup
-                .connect("https://www.cardmarket.com/en/Magic/Products/Singles/"+expansionName+"/"+cardMarketUrl)
-                .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.21 (KHTML, like Gecko) Chrome/19.0.1042.0 Safari/535.21")
-                .get();
-
-        Elements dd = cardMarket.select(".col-6");
-
-        for(Element single_dd : dd){
-            if(single_dd.text().contains("€")){
-                price = single_dd.html().replace("€", "").replace(",",".").replace(" ","");
-                break;
-            }
-        }
 
 
         //pobieranie linku do obrazka karty
@@ -191,12 +184,21 @@ public interface Expansion {
         //ale nie mam na ten moment lepszego pomysłu jak to uporządkować
         DBConnect.insertCard(cardName,cardImage,manaCost,cmc,cardNumber,cardType,rarity,power,toughness);
         DBConnect.insertArtist(artists);
-        DBConnect.insertCardExpansionConnection(expansionName,price);
+        DBConnect.insertCardExpansionConnection(price);
         DBConnect.insertCardArtistsConnection();
     }
 
 
+
+
+
+
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+    //METODA DO PONOWNEGO SCRAPOWANIA CENY KARTY, UŻYWANA W UAKTUALNIANIU CEN
     static String fetchUpdatePrice(String cardName, String expansionName) throws IOException {
+
+        //pobieranie odpowiedniego linku do cardMarketu, strony z cenami kart
         String cardMarketUrl,price = null;
         var replace = cardName.replace(' ', '-').replace('\'', '-').replace("//", "-");
         cardMarketUrl = (cardName.contains("//")) ? cardName.replace(" ","").replace("//","-").replace(":","") : replace;
@@ -216,7 +218,4 @@ public interface Expansion {
         }
         return price;
     }
-
-
-
 }

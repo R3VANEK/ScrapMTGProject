@@ -1,3 +1,5 @@
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Scanner;
@@ -10,11 +12,18 @@ public class Main{
         System.out.println("Witamy w twoim asystencie do karcianki Magic The Gathering!");
         System.out.println("--------------------------------------------------------");
         System.out.println();
-        
-        DB database = new DB();
+
+        DB database = null;
+        try{
+            database = new DB();
+        } catch (CommunicationsException e){
+            System.out.println("prosze włączyć xampa, nie można nawiązać połączenia");
+        }
+
         String continueInput = "";
 
         while(!continueInput.equals("EXIT")){
+            assert database != null;
             if(!database.getHasExpansionsInDB()){
                 //obowiązkowy import dodatków
                 database.printExpansions(database.legalSets);
@@ -33,7 +42,7 @@ public class Main{
 
             }
             else{
-                //tutaj albo zaimportowanie nowego dodatku albo zaktualizowanie cen albo jeżeli się uda wpisywanie selektów
+
                 System.out.println(new String(new char[50]).replace("\0", "\r\n"));
                 System.out.println("Masz utworzoną bazę danych, wpisz numer akcji do wykonania");
                 System.out.println();
