@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
+import java.util.Scanner;
 
 public class DB extends DBConnect implements Scraping{
 
@@ -28,6 +28,10 @@ public class DB extends DBConnect implements Scraping{
         Class.forName(JDBC_DRIVER);
         this.conn = DriverManager.getConnection(DB_URL, USER, PASS);
         this.stmt = conn.createStatement();
+
+
+        this.login();
+
         //tworzenie bazy danych
         //importowanie dostępnych dodatków
         //w przypadku nowej bazy będą to wszystkie zestawy
@@ -65,6 +69,27 @@ public class DB extends DBConnect implements Scraping{
             }
         }
     }
+
+    public void login() throws SQLException {
+        Scanner loginScanner = new Scanner(System.in);
+        System.out.println("Proszę się zalogować na swoje konto");
+        System.out.println("Login : ");
+        String login = loginScanner.next();
+        System.out.println("Password : ");
+        String password = loginScanner.next();
+
+
+        int count = checkLogin(login,password,this.conn);
+        if(count == 1){
+            System.out.println("Zalogowano poprawnie");
+        }
+        else{
+            System.out.println("Niepoprawne dane logowania, wyłączanie aplikacji....");
+            System.exit(0);
+        }
+
+    }
+
 
 
 
