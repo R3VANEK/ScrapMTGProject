@@ -45,14 +45,14 @@ public abstract class DBConnect implements Credentials, Commands{
 
 
     public static int checkLogin(String login, String password, Connection conn) throws SQLException {
-        String sql = "Select count(*) as count FROM users where login = ? and password = ?";
+        String sql = " Select count(*) as count FROM users where login = ? and password = ?;";
         PreparedStatement check = conn.prepareStatement(sql);
         check.setString(1,login);
         check.setString(2,password);
-
-        ResultSet result = check.executeQuery();
+        check.execute();
+        ResultSet result = check.getResultSet();
         int returnInt = -1;
-        while(result.next()){
+        if(result.next()){
             returnInt = result.getInt("count");
         }
         return returnInt;

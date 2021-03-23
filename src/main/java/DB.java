@@ -28,7 +28,7 @@ public class DB extends DBConnect implements Scraping{
         Class.forName(JDBC_DRIVER);
         this.conn = DriverManager.getConnection(DB_URL, USER, PASS);
         this.stmt = conn.createStatement();
-
+        stmt.executeUpdate("use mtg;");
 
         this.login();
 
