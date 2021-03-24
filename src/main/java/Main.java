@@ -48,6 +48,7 @@ public class Main{
                 System.out.println();
                 System.out.println("1. Zaimportuj nowy dodatek do istniejącej bazy");
                 System.out.println("2. Zaktualizuj ceny wszystkich kart w bazie");
+                System.out.println("3. Wyświetl wszystkie pobrane karty");
                 Scanner scan = new Scanner(System.in);
 
                 String userChoice = scan.nextLine();
@@ -61,6 +62,10 @@ public class Main{
                 else if(userChoice.contains("2")){
                     System.out.println(new String(new char[50]).replace("\0", "\r\n"));
                     database.updatePrices();
+                }
+                else if(userChoice.contains("3")){
+                    System.out.println(new String(new char[50]).replace("\0", "\r\n"));
+                    database.printAllCards();
                 }
 
 

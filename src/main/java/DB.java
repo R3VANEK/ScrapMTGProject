@@ -88,9 +88,13 @@ public class DB extends DBConnect implements Scraping{
             System.out.println("Niepoprawne dane logowania, wyłączanie aplikacji....");
             System.exit(0);
         }
+    }
 
-
-
+    public void printAllCards() throws SQLException {
+        System.out.println("Wyświetlanie wszystkich pobranych kart");
+        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------");
+        DBConnect.printAllCardsDB(this.conn);
+        System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------");
     }
 
 

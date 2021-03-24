@@ -39,6 +39,16 @@ public abstract class DBConnect implements Credentials{
         conn.close();
         return !wynik.isBlank() || !wynik.isEmpty();
     }
+
+
+    public static void printAllCardsDB(Connection conn) throws SQLException {
+        String sql = "select cards.uploaded_date as \"data pobrania karty\", cards.card_name as \"nazwa karty\", artists.name as \"ilustrator\", expansions.expansion_name as \"dodatek\", cards_expansion_connection.price as 'cena' from cards inner join cards_artists_connection on cards.id_card = cards_artists_connection.id_card inner join artists on cards_artists_connection.id_artist = artists.id_artist inner join cards_expansion_connection on cards.id_card = cards_expansion_connection.id_card inner join expansions on cards_expansion_connection.id_expansion = expansions.id_expansion;";
+        Statement stmt = conn.createStatement();
+        ResultSet results = stmt.executeQuery(sql);
+        while(results.next()){
+            System.out.println(results.getDate(1)+"|"+results.getString(2)+"|"+results.getString(3)+"|"+results.getString(4)+"|"+results.getBigDecimal(5));
+        }
+    }
     //------------------------------------------------------------------------------------------------------------------------
 
 
@@ -87,8 +97,10 @@ public abstract class DBConnect implements Credentials{
         stmt.executeUpdate("use mtg;");
         String sql = "{call insertData(?, ? , ? , ?, ? , ? , ? , ? , ? ,? , ? , ?)}";
         BigDecimal priceBig;
-
-        try{ priceBig = new BigDecimal(price); }
+        double temp;
+        try{ temp = Double.parseDouble(price);}
+        catch(NullPointerException e){ temp= Double.parseDouble(null); }
+        try{ priceBig = BigDecimal.valueOf(temp); }
         catch(NullPointerException e){ priceBig = null; }
 
 
