@@ -11,14 +11,11 @@ import java.util.concurrent.TimeUnit;
 public abstract class DBConnect implements Credentials{
 
     private static Integer LAST_INSERTED_ID_EXPANSION=null;
-    private static Integer LAST_INSERTED_ID_CARD=null;
-    private static ArrayList<Integer> LAST_INSERTED_ID_ARTIST=new ArrayList<>();
-
 
     //------------------------------------------------------------------------------------------------------------------------
     //METODY PODSTAWOWE W PRACY Z BAZĄ DANYCH
 
-    protected void createDB(Statement stmt, Connection conn) throws SQLException, IOException {
+    protected void createDB(Connection conn) throws SQLException, IOException {
         System.out.println("Wygląda na to, że nie masz utworzonej wcześniej bazy danych, zaraz coś na to poradzimy :)");
         System.out.println("Tworzenie bazy danych i jej struktury...");
 
