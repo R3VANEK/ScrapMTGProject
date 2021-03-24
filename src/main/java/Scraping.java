@@ -182,10 +182,18 @@ public interface Scraping {
         //inaczej nie dałoby się odwzorować odpowiednich powiązań między tabelami
         //w idealnym świecie, wstawiałbym te rekordu trochę bliżej klasy DB
         //ale nie mam na ten moment lepszego pomysłu jak to uporządkować
-        DBConnect.insertCard(cardName,cardImage,manaCost,cmc,cardNumber,cardType,rarity,power,toughness);
+
+
+       /* DBConnect.insertCard(cardName,cardImage,manaCost,cmc,cardNumber,cardType,rarity,power,toughness);
         DBConnect.insertArtist(artists);
         DBConnect.insertCardExpansionConnection(price);
-        DBConnect.insertCardArtistsConnection();
+        DBConnect.insertCardArtistsConnection();*/
+
+        DBConnect.insertScrapedData(
+                cardName,cardImage,manaCost,cmc,
+                cardNumber,cardType,rarity,power,
+                toughness,artists,price
+        );
     }
 
 

@@ -1,8 +1,15 @@
 delimiter //    
-                        create procedure insertData(IN card_name1 varchar(60), IN card_image1 varchar(150), IN mana_cost1 varchar(9),IN converted_mana_cost1 Integer, IN card_number1 Integer, IN card_type1 varchar(40),IN rarity1 varchar(11), IN power1 varchar(4), IN toughness1 varchar(4),IN artist_name varchar(255), IN price1 Decimal, IN id_expansion1 INTEGER)
+                        create procedure insertData(
+
+                            IN card_name1 varchar(60), IN card_image1 varchar(150), 
+                            IN mana_cost1 varchar(9),IN converted_mana_cost1 Integer, 
+                            IN card_number1 Integer, IN card_type1 varchar(40),IN rarity1 varchar(11),
+                             IN power1 varchar(4), IN toughness1 varchar(4),IN artist_name varchar(255),
+                              price1 Decimal, IN id_expansion1 INTEGER
+                              )
                             begin
                                 start transaction;
-                                set transaction isolation level serializable;
+                                
                        
                        
                                     insert into cards(card_name, card_image, mana_cost, converted_mana_cost, card_number, card_type, rarity, power, toughness)

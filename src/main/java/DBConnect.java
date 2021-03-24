@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 
-public abstract class DBConnect implements Credentials, Commands{
+public abstract class DBConnect implements Credentials{
 
     private static Integer LAST_INSERTED_ID_EXPANSION=null;
     private static Integer LAST_INSERTED_ID_CARD=null;
@@ -63,9 +63,6 @@ public abstract class DBConnect implements Credentials, Commands{
 
 
 
-
-
-
     //------------------------------------------------------------------------------------------------------------------------
     //METODY WSTAWIAJĄCE DANE DO BAZY
     public static void insertExpansion(String expansionName) throws SQLException, ClassNotFoundException {
@@ -85,141 +82,41 @@ public abstract class DBConnect implements Credentials, Commands{
     }
 
 
-    public static void insertArtist(String artists) throws ClassNotFoundException, SQLException {
+    public static void insertScrapedData(String cardName, String cardImage, String manaCost, int cmc, int cardNumber, String cardType, String rarity, String power, String toughness, String artists, String price) throws SQLException, ClassNotFoundException {
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
         Statement stmt = conn.createStatement();
+
         stmt.executeUpdate("use mtg;");
-        LAST_INSERTED_ID_ARTIST.clear();
-        //dwóch artystów pracujących na kartą
-        if(artists.contains("&amp;")){
-            String[] artistsList = artists.split("\\s&amp;\\s");
-
-            try{ stmt.executeUpdate("INSERT INTO artists(name) VALUES(\""+artistsList[0]+"\")"); }
-            catch(SQLException e){
-                ResultSet result =  stmt.executeQuery("SELECT id_artist AS id FROM artists WHERE name=\""+artistsList[0]+"\"");
-                while(result.next()){
-                    LAST_INSERTED_ID_ARTIST.add(result.getInt("id"));
-                }
-            }
-
-            try { stmt.executeUpdate("INSERT INTO artists(name) VALUES(\""+artistsList[1]+"\")"); }
-            catch(SQLException e){
-                ResultSet result =  stmt.executeQuery("SELECT id_artist AS id FROM artists WHERE name=\""+artistsList[1]+"\"");
-                while(result.next()){
-                    LAST_INSERTED_ID_ARTIST.add(result.getInt("id"));
-                }
-            }
-
-            //jeżeli kod wszedł w tego ifa, to znaczy, że oba inserty się udały
-            //i potrzebujemy do artists_connection dwóch id
-            if(LAST_INSERTED_ID_ARTIST.size() == 0){
-                ResultSet result =  stmt.executeQuery("SELECT id_artist as id from artists order by id_artist desc limit 2");
-                while(result.next()){
-                    LAST_INSERTED_ID_ARTIST.add(result.getInt("id"));
-                }
-            }
-        }
-        //pojedyńczy artysta pracujący nad kartą
-        else{
-                stmt.executeUpdate("INSERT IGNORE INTO artists(name) VALUES(\""+artists+"\")");
-                ResultSet result =  stmt.executeQuery("SELECT id_artist as id FROM artists WHERE name=\""+artists+"\"");
-                while(result.next()){
-                    LAST_INSERTED_ID_ARTIST.add(result.getInt("id"));
-                }
-        }
-        conn.close();
-
-
-        //ustalanie właściwych id wstawionych artystów
-        //do późniejszego użycia w cards_artists_connection
-        //życie byłoby piękne gdybym mógl to zrobić, ale z powodu jdbc musze za każdym razem tworzyć nowy ResultSet
-        //i nie mogę utworzyć ArrayLista z jego wynikami
-       /* LAST_INSERTED_ID_ARTIST.clear();
-        for(ResultSet result : last_id_artists){
-            while(result.next()){
-                LAST_INSERTED_ID_ARTIST.add(result.getInt("id"));
-            }
-        }
-
-        conn.close();*/
-    }
-
-
-    public static void insertCard(String cardName, String cardImage, String manaCost, int cmc, int cardNumber, String cardType, String rarity, String power, String toughness) throws SQLException, ClassNotFoundException {
-
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-        Statement stmt = conn.createStatement();
-        stmt.executeUpdate("use mtg;");
-
-        //price w strukturze tabeli cards_expansions
-        String sqlInsert = "INSERT INTO cards(card_name,card_image,mana_cost,converted_mana_cost,card_number,card_type,rarity,power,toughness)"+
-                            "VALUES(\""+cardName+"\",\""+cardImage+"\",\""+manaCost+"\","+cmc+","+cardNumber+",\""+cardType+"\",\""+rarity+"\",\""+power+"\",\""+toughness+"\");"+
-                            "SELECT LAST_INSERT_ID() as Id;";
-
-        ResultSet indexOfLastCard;
-        try{
-            stmt.executeUpdate(sqlInsert);
-            indexOfLastCard = stmt.executeQuery("SELECT MAX(id_card) AS id FROM cards");
-        }
-        //jeżeli kod wejdzie do tego catcha to znaczy, że taki rekord już istnieje
-        //w takim wypadku musimy znaleźć jego właściwe id w bazie żeby prawidłowo
-        //stworzyć relację
-        catch (SQLException e){
-            System.out.println(e.getMessage());
-            indexOfLastCard = stmt.executeQuery("SELECT id_card AS id FROM cards WHERE card_name=\""+cardName+"\"");
-        }
-
-        while(indexOfLastCard.next()){
-            LAST_INSERTED_ID_CARD = indexOfLastCard.getInt("id");
-        }
-        conn.close();
-    }
-
-
-    public static void insertCardExpansionConnection( String price) throws SQLException, ClassNotFoundException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-        Statement stmt = conn.createStatement();
-        stmt.executeUpdate("use mtg;");
-
+        String sql = "{call insertData(?, ? , ? , ?, ? , ? , ? , ? , ? ,? , ? , ?)}";
         BigDecimal priceBig;
-        try{
-            priceBig = new BigDecimal(price);
-        }
 
-        //to są bardzo rzadkie przypadki, kiedy nie
-        //zdołano prawidłowo odczytać ceny karty z cardMarketu
-        //jest to spowodowane bardzo dziwnymi nazwami kart ze znakami specjalnymi
-        //url ma wtedy inną zasadę układania się, często po prostu zastępuje te znaki czymś innym
-        //ten błąd powoduje często znaczek Æ w nazwach kart
-        //mógłbym to naprawić, ale zajęłoby mi to za dużo czasu, na razie dopuszczam w bazie
-        //możliwość ustawiania nulla w cenach kart gdyby prawidłowo nie odczytano ceny
+        try{ priceBig = new BigDecimal(price); }
+        catch(NullPointerException e){ priceBig = null; }
 
-        //kolejna możliwość dlaczego w bazie jest tyle nulli jest po prostu zakorkowanie zstrony cardMarket
-        //gdy czas na odpowiedź zapytania jest przekorszona automatycznie zostaje tam null
-        //przed tym nie da się uchronić, ale zawsze można próbowac uaktualnić cenę kart
-        catch(NullPointerException e){
-            priceBig = null;
-        }
-        String sqlInsert = "INSERT INTO cards_expansion_connection(id_card,price,id_expansion) VALUES("+LAST_INSERTED_ID_CARD+","+priceBig+","+LAST_INSERTED_ID_EXPANSION+")";
-        stmt.executeUpdate(sqlInsert);
-    }
 
-    public static void insertCardArtistsConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
-        Statement stmt = conn.createStatement();
-        stmt.executeUpdate("use mtg;");
+        CallableStatement insert = conn.prepareCall(sql);
 
-        String sqlInsert1 = "INSERT INTO cards_artists_connection(id_card,id_artist) VALUES("+LAST_INSERTED_ID_CARD+","+LAST_INSERTED_ID_ARTIST.get(0)+")";
-        if(LAST_INSERTED_ID_ARTIST.size() > 1){
-            sqlInsert1 += ",("+LAST_INSERTED_ID_CARD+","+LAST_INSERTED_ID_ARTIST.get(1)+")";
-        }
-        stmt.executeUpdate(sqlInsert1);
+
+        insert.setString(1,cardName);
+        insert.setString(2,cardImage);
+        insert.setString(3,manaCost);
+        insert.setInt(4,cmc);
+        insert.setInt(5,cardNumber);
+        insert.setString(6,cardType);
+        insert.setString(7,rarity);
+        insert.setString(8,power);
+        insert.setString(9,toughness);
+        insert.setString(10,artists);
+        insert.setBigDecimal(11, priceBig);
+        insert.setInt(12,LAST_INSERTED_ID_EXPANSION);
+
+        insert.execute();
         conn.close();
+
     }
+
+
     //------------------------------------------------------------------------------------------------------------------------
 
 

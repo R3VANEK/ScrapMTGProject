@@ -65,10 +65,10 @@
                                         create procedure insertData(IN card_name1 varchar(60), IN card_image1 varchar(150), IN mana_cost1 varchar(9),IN converted_mana_cost1 Integer, IN card_number1 Integer, IN card_type1 varchar(40),IN rarity1 varchar(11), IN power1 varchar(4), IN toughness1 varchar(4),IN artist_name varchar(255), IN price1 Decimal, IN id_expansion1 INTEGER)
                                             begin
                                                 start transaction;
-                                                set transaction isolation level serializable;
 
 
-                                                    insert into cards(card_name, card_image, mana_cost, converted_mana_cost, card_number, card_type, rarity, power, toughness)
+
+                                                    insert ignore into cards(card_name, card_image, mana_cost, converted_mana_cost, card_number, card_type, rarity, power, toughness)
                                                     values(card_name1,card_image1,mana_cost1, converted_mana_cost1, card_number1, card_type1, rarity1, power1, toughness1);
 
 
@@ -84,7 +84,7 @@
                                                         set @firstArtistID = (select max(id_artist)-1 from artists);
                                                         set @secondArtistID = (select max(id_artist) from artists);
 
-                                                        insert into cards_artist_connection(id_card, id_artist) values
+                                                        insert ignore into cards_artist_connection(id_card, id_artist) values
                                                         (@id_card, @firstArtistID), (@id_card, @secondArtistID);
 
                                                     else
