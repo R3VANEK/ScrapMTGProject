@@ -28,9 +28,9 @@ public class DB extends DBConnect implements Scraping{
         Class.forName(JDBC_DRIVER);
         this.conn = DriverManager.getConnection(DB_URL, USER, PASS);
         this.stmt = conn.createStatement();
-        stmt.executeUpdate("use mtg;");
 
-        this.login();
+
+
 
         //tworzenie bazy danych
         //importowanie dostępnych dodatków
@@ -38,11 +38,12 @@ public class DB extends DBConnect implements Scraping{
         //jeżeli baza istniała to tylko te, które nie istniały
         //wcześniej w bazie, unika to importowania dodatków jeszcze raz
         if(!DBConnect.checkDB()){
-            this.createDB(this.stmt);
+            this.createDB(this.stmt, this.conn);
             this.legalSets = this.getExpansions();
         }
         else{
             //dodać ifa sprawdzającego czy expansionsImported ma wgl jakieś expansions
+
             ArrayList<String> expansionsImported = this.getExpansions(this.stmt);
             ArrayList<String> allExpansions = this.getExpansions();
             if(expansionsImported.size() != 0){
@@ -51,6 +52,8 @@ public class DB extends DBConnect implements Scraping{
             }
             this.legalSets = allExpansions;
         }
+        stmt.executeUpdate("use mtg;");
+        this.login();
     }
 
 

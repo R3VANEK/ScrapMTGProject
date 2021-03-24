@@ -69,6 +69,8 @@ public interface Commands {
                 ALTER TABLE cards_artists_connection ADD CONSTRAINT cards_artists_connection_FK2 FOREIGN KEY (id_artist) REFERENCES artists(id_artist);
 
 
+                INSERT INTO users(login,password) values ('GraczTrona123','password123');
+  
                 COMMIT;
 
             """;

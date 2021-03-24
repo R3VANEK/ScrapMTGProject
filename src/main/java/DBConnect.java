@@ -1,6 +1,6 @@
 import javax.swing.plaf.nimbus.State;
 import javax.xml.transform.Result;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
@@ -18,10 +18,13 @@ public abstract class DBConnect implements Credentials, Commands{
     //------------------------------------------------------------------------------------------------------------------------
     //METODY PODSTAWOWE W PRACY Z BAZĄ DANYCH
 
-    protected void createDB(Statement stmt) throws SQLException {
+    protected void createDB(Statement stmt, Connection conn) throws SQLException, IOException {
         System.out.println("Wygląda na to, że nie masz utworzonej wcześniej bazy danych, zaraz coś na to poradzimy :)");
         System.out.println("Tworzenie bazy danych i jej struktury...");
-        stmt.executeUpdate(sqlInit);
+
+        ScriptRunner runner = new ScriptRunner(conn, false, false);
+        String file = System.getProperty("user.dir")+ File.separator+"src"+File.separator+"main"+File.separator+"resources"+File.separator+"init.sql";
+        runner.runScript(new BufferedReader(new FileReader(file)));
         System.out.println("Utworzono bazę danych");
     }
 
