@@ -14,25 +14,25 @@ public class Main{
         System.out.println();
 
         DB database = null;
-        try{
-            database = new DB();
-        } catch (CommunicationsException e){
-            System.out.println("prosze włączyć xampa, nie można nawiązać połączenia");
-        }
+        try{ database = new DB(); }
+        catch (CommunicationsException e){ System.out.println("prosze włączyć xampa, nie można nawiązać połączenia"); }
+
 
         String continueInput = "";
 
         while(!continueInput.equals("EXIT")){
+
             assert database != null;
+
+            //obowiązkowy import dodatków
             if(!database.getHasExpansionsInDB()){
-                //obowiązkowy import dodatków
-                database.printExpansions(database.legalSets);
+                database.printExpansions();
                 System.out.println("Ponieważ wykryto pustą bazę danych żeby móc z niej skorzystać musisz zaimportować najpierw jakieś karty");
                 System.out.println("Powyżej wyświetliły się wszystkie dostępne dodatki, z których karty możesz pobrać");
                 System.out.println("Wpisz ich dokładne nazwy poniżej po przecinku np. Amonkhet,Welcome Deck 2016");
                 Scanner scan = new Scanner(System.in);
 
-                database.getGivenExpansions(scan.nextLine());
+                database.UploadExpansions(scan.nextLine());
                 database.setHasExpansionsInDB(true);
 
                 System.out.println(new String(new char[50]).replace("\0", "\r\n"));
@@ -54,10 +54,10 @@ public class Main{
                 String userChoice = scan.nextLine();
 
                 if(userChoice.equals("1")){
-                    database.printExpansions(database.legalSets);
+                    database.printExpansions();
                     System.out.println("Powyżej wyświetliły się wszystkie dostępne dodatki, z których karty możesz pobrać");
                     System.out.println("Wpisz ich dokładne nazwy poniżej po przecinku np. Amonkhet,Welcome Deck 2016");
-                    database.getGivenExpansions(scan.nextLine());
+                    database.UploadExpansions(scan.nextLine());
                 }
                 else if(userChoice.contains("2")){
                     System.out.println(new String(new char[50]).replace("\0", "\r\n"));

@@ -9,12 +9,16 @@ public class DB extends DBConnect implements Scraping{
     private Statement stmt = null;
     private Connection conn = null;
 
+
+    //nieposiadane w bazie dodatki mtg, możliwe do zaimportowania
     public ArrayList<String> legalSets;
 
 
     //to jest sprawdzane tylko przy tworzeniu
     private boolean hasExpansionsInDB = false;
 
+
+    // TODO: wywal tą funkcję a jej kod dodaj gdzieś w kodzie
     public void setHasExpansionsInDB(boolean newValue){
         this.hasExpansionsInDB = newValue;
     }
@@ -55,7 +59,7 @@ public class DB extends DBConnect implements Scraping{
     }
 
 
-    public void getGivenExpansions(String chosenExpansionsString) throws SQLException, ClassNotFoundException {
+    public void UploadExpansions(String chosenExpansionsString) throws SQLException, ClassNotFoundException {
 
         ArrayList<String> setsArray = new ArrayList<>(Arrays.asList(chosenExpansionsString.split(",")));
         for(String set : setsArray){
@@ -95,6 +99,20 @@ public class DB extends DBConnect implements Scraping{
         System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------");
         DBConnect.printAllCardsDB(this.conn);
         System.out.println("-----------------------------------------------------------------------------------------------------------------------------------------------------");
+    }
+
+
+
+    // TODO : dodaj logikę wyświetlania odpowiednich dodaktów albo z bazy albo z api
+    //TODO: przenieś getExpansions tutaj, a ewentualne zapytnaie do api w interfejs
+
+    public void printExpansions(){
+        System.out.println("---------------------------------------------------------------------");
+        for(String expansion : this.legalSets){
+            System.out.println(expansion);
+        }
+        System.out.println("---------------------------------------------------------------------");
+        System.out.println();
     }
 
 

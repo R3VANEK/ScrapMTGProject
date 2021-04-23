@@ -40,14 +40,7 @@ public interface Scraping {
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-    default void printExpansions(ArrayList<String> legalSets){
-        System.out.println("---------------------------------------------------------------------");
-        for(String expansion : legalSets){
-            System.out.println(expansion);
-        }
-        System.out.println("---------------------------------------------------------------------");
-        System.out.println();
-    }
+
 
 
 
@@ -59,6 +52,9 @@ public interface Scraping {
     //GŁÓWNA METODA "HUB" DO PĘTLI POZYSKIWANIA INFORMAJCI O KARTACH Z DANEGO DODATKU
     default void getSingleExpansion(String expansionName, ArrayList<String> legalSets) throws IOException, SQLException, ClassNotFoundException {
 
+
+        // TODO : Ten warunek można przenieść wyżej ( klasa DB ) z continue w pętli
+        // TODO: Wgl większość logiki przenieś do klasy DB, w ScrappingAPI niech będą czyste funkcje
         if(!legalSets.contains(expansionName)){
             throw new IllegalArgumentException("Wpisano złą nazwę zestawu, pomijanie dodawania zestawu \""+expansionName+"\"");
         }
@@ -189,6 +185,8 @@ public interface Scraping {
         DBConnect.insertCardExpansionConnection(price);
         DBConnect.insertCardArtistsConnection();*/
 
+
+        // TODO: tą logikę też przenieś do klasy DB w pętli żeby scrapingAPI było czyste
         DBConnect.insertScrapedData(
                 cardName,cardImage,manaCost,cmc,
                 cardNumber,cardType,rarity,power,
