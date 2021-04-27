@@ -21,9 +21,7 @@ public interface ScrapingAPI {
 
 
 
-    // funkcja zwracająca ArrayListę nazw wszystkich dodatków potrzebnych do zawołań API
-    default ArrayList<String> getNamesOfAllExpansions1() throws IOException {
-
+    default String getBodyFromAPI(String givenURL) throws IOException {
         URL expansionsListUrl = new URL("https://api.scryfall.com/sets");
         HttpURLConnection conn = (HttpURLConnection) expansionsListUrl.openConnection();
         conn.setRequestMethod("GET");
@@ -34,15 +32,25 @@ public interface ScrapingAPI {
             throw new RuntimeException("HttpResponseCode: " + responsecode);
         }
 
-        StringBuilder inline = new StringBuilder();
+        StringBuilder body = new StringBuilder();
         Scanner scanner = new Scanner(expansionsListUrl.openStream());
 
         while (scanner.hasNext()) {
-            inline.append(scanner.nextLine());
+            body.append(scanner.nextLine());
         }
         scanner.close();
+        return String.valueOf(body);
+    }
 
-        JsonObject jsonObject = new JsonParser().parse(String.valueOf(inline)).getAsJsonObject();
+
+
+
+    // funkcja zwracająca ArrayListę nazw wszystkich dodatków potrzebnych do zawołań API
+    default ArrayList<String> getNamesOfAllExpansions1() throws IOException {
+
+
+        String body = getBodyFromAPI("https://api.scryfall.com/sets");
+        JsonObject jsonObject = new JsonParser().parse(body).getAsJsonObject();
         JsonArray jsonSets = (JsonArray) jsonObject.get("data");
 
         ArrayList<String> responseSets = new ArrayList<>();
@@ -72,41 +80,32 @@ public interface ScrapingAPI {
 
     default void fetchCardsFromExpansion(String givenExpansionName) throws IOException, SQLException, ClassNotFoundException {
 
-
-        // TODO: może jakaś mała funkcyjka, która robi ten bloczek kodu?
         String fixedName = givenExpansionName.replace(" ", "_");
-        URL expansionsListUrl = new URL("https://api.scryfall.com/cards/search?q=set%3A"+fixedName);
-        HttpURLConnection conn = (HttpURLConnection) expansionsListUrl.openConnection();
-        conn.setRequestMethod("GET");
-        conn.connect();
+        String body = getBodyFromAPI("https://api.scryfall.com/cards/search?q=set%3A"+fixedName);
 
-        int responsecode = conn.getResponseCode();
-        if (responsecode != 200) {
-            throw new RuntimeException("HttpResponseCode: " + responsecode);
-        }
-
-        StringBuilder inline = new StringBuilder();
-        Scanner scanner = new Scanner(expansionsListUrl.openStream());
-
-        while (scanner.hasNext()) {
-            inline.append(scanner.nextLine());
-        }
-        scanner.close();
-
-        JsonObject jsonObject = new JsonParser().parse(String.valueOf(inline)).getAsJsonObject();
+        JsonObject jsonObject = new JsonParser().parse(body).getAsJsonObject();
         JsonArray cardsData = (JsonArray) jsonObject.get("data");
 
 
-        int numberOfCardsToFetch = cardsData.size();
-        System.out.println(new String(new char[50]).replace("\0", "\r\n"));
-        System.out.println("Import kart z dodatku " + givenExpansionName);
 
-        for(int i = 0; i<numberOfCardsToFetch; i+=1){
+
+        for(int i = 0; i<cardsData.size(); i+=1){
 
             String cardName, cardImage, manaCost, artists, power, toughness, price, rarity, cardType;
             int cardNumber, cmc;
             JsonObject tempObj = (JsonObject) cardsData.get(i);
             Pattern pattern = Pattern.compile("Creature|Instant|Sorcery|Artifact|Enchantment|Land|Planeswalker");
+
+
+            cardNumber = tempObj.get("cardmarket_id").getAsInt();
+            cmc = tempObj.get("cmc").getAsInt();
+            artists = tempObj.get("artist").getAsString();
+            rarity = tempObj.get("rarity").getAsString();
+            cardName = tempObj.get("name").getAsString();
+
+            //czasami w api scryfallu nie ma ceny w euro :/
+            try{ price = tempObj.get("prices").getAsJsonObject().get("eur").getAsString(); }
+            catch(UnsupportedOperationException e){ price = null; }
 
 
             // mdfc
@@ -136,25 +135,7 @@ public interface ScrapingAPI {
                 cardType = (matchFound) ? matcher.group() : null;
             }
 
-
-
-            cardNumber = tempObj.get("cardmarket_id").getAsInt();
-            cmc = tempObj.get("cmc").getAsInt();
-
-            artists = tempObj.get("artist").getAsString();
-            rarity = tempObj.get("rarity").getAsString();
-
-            //czasami w api scryfallu nie ma ceny w euro :/
-            try{
-                price = tempObj.get("prices").getAsJsonObject().get("eur").getAsString();
-            } catch(UnsupportedOperationException e){
-                price = null;
-            }
-
-            cardName = tempObj.get("name").getAsString();
-
             DBConnect.insertScrapedData(cardName, cardImage,manaCost,cmc,cardNumber,cardType,rarity,power,toughness,artists,price);
-            System.out.print(i+"/"+numberOfCardsToFetch+"\r");
         }
 
     }

@@ -70,11 +70,13 @@ public class DB extends DBConnect implements Scraping, ScrapingAPI{
                 //this.getSingleExpansion(set, this.legalSets);
                 if(this.legalSets.contains(set)){
                     DBConnect.insertExpansion(set);
+                    System.out.println("Import kart z dodatku " + set);
                     this.fetchCardsFromExpansion(set);
                     this.legalSets.remove(set);
+                    System.out.println(new String(new char[50]).replace("\0", "\r\n"));
                 }
                 else{
-                    System.out.println("Ten dodatek został już kiedyś zaimportownay, pomijanie...");
+                    System.out.println("Ten dodatek został już kiedyś zaimportowany, pomijanie...");
                 }
 
 
