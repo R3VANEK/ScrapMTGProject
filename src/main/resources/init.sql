@@ -7,7 +7,7 @@
                     id_card INTEGER PRIMARY KEY NOT NULL AUTO_INCREMENT,
                     card_name VARCHAR(60) NOT NULL UNIQUE,
                     card_image VARCHAR(150) NOT NULL UNIQUE,
-                    mana_cost VARCHAR(9) NOT NULL,
+                    mana_cost VARCHAR(30) NOT NULL,
                     converted_mana_cost INTEGER NOT NULL,
                     card_number INTEGER NOT NULL,
                     card_type VARCHAR(40) NOT NULL,
@@ -62,7 +62,7 @@
 
 
                 delimiter //
-                                        create procedure insertData(IN card_name1 varchar(60), IN card_image1 varchar(150), IN mana_cost1 varchar(9),IN converted_mana_cost1 Integer, IN card_number1 Integer, IN card_type1 varchar(40),IN rarity1 varchar(11), IN power1 varchar(4), IN toughness1 varchar(4),IN artist_name varchar(255), IN price1 DECIMAL(10,2), IN id_expansion1 INTEGER)
+                                        create procedure insertData(IN card_name1 varchar(60), IN card_image1 varchar(150), IN mana_cost1 varchar(30),IN converted_mana_cost1 Integer, IN card_number1 Integer, IN card_type1 varchar(40),IN rarity1 varchar(11), IN power1 varchar(4), IN toughness1 varchar(4),IN artist_name varchar(255), IN price1 DECIMAL(10,2), IN id_expansion1 INTEGER)
                                             begin
                                                 start transaction;
 

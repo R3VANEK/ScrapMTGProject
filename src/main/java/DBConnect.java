@@ -97,9 +97,13 @@ public abstract class DBConnect implements Credentials{
         stmt.executeUpdate("use mtg;");
         String sql = "{call insertData(?, ? , ? , ?, ? , ? , ? , ? , ? ,? , ? , ?)}";
         BigDecimal priceBig;
-        double temp;
+        Double temp;
+
+
         try{ temp = Double.parseDouble(price);}
-        catch(NullPointerException e){ temp= Double.parseDouble(null); }
+        catch(NullPointerException e){ temp= null; }
+
+
         try{ priceBig = BigDecimal.valueOf(temp); }
         catch(NullPointerException e){ priceBig = null; }
 

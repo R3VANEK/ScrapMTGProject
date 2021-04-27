@@ -2,9 +2,10 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Scanner;
 
-public class DB extends DBConnect implements Scraping{
+public class DB extends DBConnect implements Scraping, ScrapingAPI{
 
     private Statement stmt = null;
     private Connection conn = null;
@@ -14,7 +15,7 @@ public class DB extends DBConnect implements Scraping{
     public ArrayList<String> legalSets;
 
 
-    //to jest sprawdzane tylko przy tworzeniu
+    //zmienna potrzebna do określenia, czy pracujemy na pustej bazie danych, czy nie
     private boolean hasExpansionsInDB = false;
 
 
@@ -43,11 +44,11 @@ public class DB extends DBConnect implements Scraping{
         //wcześniej w bazie, unika to importowania dodatków jeszcze raz
         if(!DBConnect.checkDB()){
             this.createDB(this.conn);
-            this.legalSets = this.getExpansions();
+            this.legalSets = this.getNamesOfAllExpansions1();
         }
         else{
-            ArrayList<String> expansionsImported = this.getExpansions(this.stmt);
-            ArrayList<String> allExpansions = this.getExpansions();
+            ArrayList<String> expansionsImported = this.getNamesOfAllExpansions1(this.stmt);
+            ArrayList<String> allExpansions = this.getNamesOfAllExpansions1();
             if(expansionsImported.size() != 0){
                 allExpansions.removeAll(expansionsImported);
                 this.hasExpansionsInDB = true;
@@ -55,23 +56,28 @@ public class DB extends DBConnect implements Scraping{
             this.legalSets = allExpansions;
         }
         stmt.executeUpdate("use mtg;");
-        this.login();
+        //this.login();
     }
 
 
-    public void UploadExpansions(String chosenExpansionsString) throws SQLException, ClassNotFoundException {
+    public void UploadExpansions(String chosenExpansionsString) throws SQLException, ClassNotFoundException, IOException {
 
         ArrayList<String> setsArray = new ArrayList<>(Arrays.asList(chosenExpansionsString.split(",")));
         for(String set : setsArray){
-            try{
+
                 //pobiera pojedyńczy dodatek i zabiera go z legalSets
                 //żeby nie dało się go jeszcze raz zaimportować (zdublwoać)
-                this.getSingleExpansion(set, this.legalSets);
-                this.legalSets.remove(set);
+                //this.getSingleExpansion(set, this.legalSets);
+                if(this.legalSets.contains(set)){
+                    DBConnect.insertExpansion(set);
+                    this.fetchCardsFromExpansion(set);
+                    this.legalSets.remove(set);
+                }
+                else{
+                    System.out.println("Ten dodatek został już kiedyś zaimportownay, pomijanie...");
+                }
 
-            } catch(IllegalArgumentException | IOException e){
-                System.out.println(e.getMessage());
-            }
+
         }
     }
 
