@@ -40,7 +40,7 @@ public class DB1 implements CommunicationMYSQL{
         this.conn = DriverManager.getConnection(DB_URL, USER, PASS);
         this.stmt = conn.createStatement();
 
-        if(!DBConnect.checkDB()){
+        if(!CommunicationMYSQL.checkDB(this.DB_URL, this.USER, this.PASS)){
             this.createDB1(this.conn);
         }
         else{
