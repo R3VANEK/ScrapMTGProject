@@ -1,5 +1,7 @@
 import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -67,8 +69,25 @@ public class MTGAssistant implements ScrapingAPI{
 
 
 
-    public void expansionsToJson(){
-        System.out.println("to ja");
+    public void expansionsToJson() throws SQLException, IOException {
+
+        FileWriter fileWriter;
+        String path = System.getProperty("user.dir")+ File.separator+"src"+File.separator+"main"+File.separator+"resources"+File.separator+"data.json";
+        try{
+            fileWriter = new FileWriter(path);
+        }
+        catch(IOException e){
+            File newFile = new File(path);
+            fileWriter = new FileWriter(path);
+        }
+
+        fileWriter.write("{\"data\" : [");
+        ArrayList<CardData> cardsFromDB =  database.getCardsFromDB(database.getConn());
+        for(CardData card : cardsFromDB){
+           fileWriter.write(card.toJsonString() +",");
+        }
+        fileWriter.write("]}");
+        fileWriter.close();
     }
 
 

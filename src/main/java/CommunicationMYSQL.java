@@ -10,15 +10,9 @@ public interface CommunicationMYSQL {
 
 
     default void createDB1(Connection conn) throws SQLException, IOException {
-
-
-//        System.out.println("Wygląda na to, że nie masz utworzonej wcześniej bazy danych, zaraz coś na to poradzimy :)");
-//        System.out.println("Tworzenie bazy danych i jej struktury...");
-
         ScriptRunner runner = new ScriptRunner(conn, false, false);
         String file = System.getProperty("user.dir")+ File.separator+"src"+File.separator+"main"+File.separator+"resources"+File.separator+"init.sql";
         runner.runScript(new BufferedReader(new FileReader(file)));
-        //System.out.println("Utworzono bazę danych");
     }
 
 
@@ -80,7 +74,7 @@ public interface CommunicationMYSQL {
     }
 
 
-    default void insertScrapedData(Connection conn, int LAST_INSERTED_ID_EXPANSION, String cardName, String cardImage, String manaCost, int cmc, int cardNumber, String cardType, String rarity, String power, String toughness, String artists, BigDecimal priceBig) throws SQLException, ClassNotFoundException {
+    default void insertScrapedData(Connection conn, int LAST_INSERTED_ID_EXPANSION, String cardName, String cardImage, String manaCost, int cmc, int cardNumber, String cardType, String rarity, String power, String toughness, String artists, BigDecimal priceBig) throws SQLException{
 
 
         Statement stmt = conn.createStatement();
@@ -103,7 +97,42 @@ public interface CommunicationMYSQL {
 
         insert.execute();
 
+    }
+
+
+    default ArrayList<CardData> getCardsFromDB(Connection conn) throws SQLException {
+
+        Statement stmt = conn.createStatement();
+        ArrayList<CardData> DBCards = new ArrayList<>();
+        stmt.executeUpdate("use mtg;");
+
+        //TODO: W dalekiej przyszłości mozna trochę poprawić skrypt, bo nie uwzględnia on więcej niz jednego artyste na kartę, ale trzeba pędzic bo DEADLINE dzisiaj
+        String sql = "SELECT expansions.expansion_name, cards.card_number, cards.card_type, cards.card_name, cards.card_image, cards.rarity, cards.power, cards.toughness, cards.converted_mana_cost, cards.mana_cost, cards_expansion_connection.price, artists.name from cards inner join cards_expansion_connection on cards.id_card = cards_expansion_connection.id_card inner join expansions on cards_expansion_connection.id_expansion = expansions.id_expansion inner join cards_artists_connection on cards.id_card = cards_artists_connection.id_card inner join artists on cards_artists_connection.id_artist = artists.id_artist";
+        stmt.execute(sql);
+
+        ResultSet result = stmt.getResultSet();
+        while(result.next()){
+            DBCards.add(new CardData(
+                    result.getString("expansion_name"),
+                    result.getInt("card_number"),
+                    result.getString("card_type"),
+                    result.getString("card_name"),
+                    result.getString("card_image"),
+                    result.getString("rarity"),
+                    result.getString("power"),
+                    result.getString("toughness"),
+                    result.getInt("converted_mana_cost"),
+                    result.getString("mana_cost"),
+                    result.getBigDecimal("price"),
+                    result.getString("name")
+
+            ));
+        }
+
+        return DBCards;
+
 
     }
+
 
 }

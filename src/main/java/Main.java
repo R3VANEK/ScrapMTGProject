@@ -28,7 +28,7 @@ public class Main{
 
                 System.out.println("Co chcesz zrobić? <wpisz 1 albo 2 >");
                 System.out.println("1. Import nowych dodatków do bazy danych");
-                System.out.println("2. Eksport wybranych dodatków z bazy danych do jsona");
+                System.out.println("2. Eksport wszystkich dodatków z bazy danych do jsona");
                 String action = chooseScanner.nextLine();
 
                 switch (action) {
