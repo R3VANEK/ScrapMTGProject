@@ -29,7 +29,6 @@ public abstract class DBConnect implements Credentials{
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
         Statement stmt = conn.createStatement();
-
         String sql = "show databases like 'mtg'";
         ResultSet results = stmt.executeQuery(sql);
         String wynik = "";

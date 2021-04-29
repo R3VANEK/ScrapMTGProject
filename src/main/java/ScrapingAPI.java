@@ -22,7 +22,7 @@ public interface ScrapingAPI {
 
 
     default String getBodyFromAPI(String givenURL) throws IOException {
-        URL expansionsListUrl = new URL("https://api.scryfall.com/sets");
+        URL expansionsListUrl = new URL(givenURL);
         HttpURLConnection conn = (HttpURLConnection) expansionsListUrl.openConnection();
         conn.setRequestMethod("GET");
         conn.connect();
@@ -57,28 +57,20 @@ public interface ScrapingAPI {
 
         for(int i = 0; i < jsonSets.size(); i+=1){
             JsonObject tempObj = (JsonObject) jsonSets.get(i);
-            responseSets.add(String.valueOf(tempObj.get("name")));
+            responseSets.add(tempObj.get("name").getAsString());
         }
 
         return responseSets;
     }
 
-    // funkcja zwracająca ArrayListę nazw dodatków obecnych w bazie danych
-    default ArrayList<String> getNamesOfAllExpansions1(Statement stmt) throws SQLException {
-
-        ArrayList<String> temp = new ArrayList<>();
-        stmt.executeUpdate("use mtg;");
-        ResultSet expansions = stmt.executeQuery("select expansion_name from expansions");
-        while(expansions.next()){
-            temp.add(expansions.getString("expansion_name"));
-        }
-        return temp;
-    }
 
 
 
 
-    default void fetchCardsFromExpansion(String givenExpansionName) throws IOException, SQLException, ClassNotFoundException {
+
+    default CardData[] fetchCardsFromExpansion(String givenExpansionName) throws IOException, SQLException, ClassNotFoundException {
+
+
 
         String fixedName = givenExpansionName.replace(" ", "_");
         String body = getBodyFromAPI("https://api.scryfall.com/cards/search?q=set%3A"+fixedName);
@@ -88,6 +80,7 @@ public interface ScrapingAPI {
 
 
 
+        CardData[] returnData = new CardData[cardsData.size()];
 
         for(int i = 0; i<cardsData.size(); i+=1){
 
@@ -135,9 +128,12 @@ public interface ScrapingAPI {
                 cardType = (matchFound) ? matcher.group() : null;
             }
 
-            DBConnect.insertScrapedData(cardName, cardImage,manaCost,cmc,cardNumber,cardType,rarity,power,toughness,artists,price);
+
+            returnData[i] = new CardData(cardName,cardImage,manaCost,artists,power,toughness,price,rarity,cardType,cardNumber,cmc);
+            //DBConnect.insertScrapedData(cardName, cardImage,manaCost,cmc,cardNumber,cardType,rarity,power,toughness,artists,price);
         }
 
+        return  returnData;
     }
 
 

@@ -16,13 +16,15 @@ public class Main{
 
 
 
-        DB database = null;
-        try{ database = new DB(); }
-        catch (CommunicationsException e){ System.out.println("prosze włączyć xampa, nie można nawiązać połączenia"); }
-
-        assert database != null;
-        DBConnect.insertExpansion("Amonkhet");
-        database.fetchCardsFromExpansion("Amonkhet");
+        MTGAssistant assistant = new MTGAssistant();
+        assistant.uploadExpansions();
+//        DB database = null;
+//        try{ database = new DB(); }
+//        catch (CommunicationsException e){ System.out.println("prosze włączyć xampa, nie można nawiązać połączenia"); }
+//
+//        assert database != null;
+//        DBConnect.insertExpansion("Amonkhet");
+//        database.fetchCardsFromExpansion("Amonkhet");
 //
 //
 //        String continueInput = "";
