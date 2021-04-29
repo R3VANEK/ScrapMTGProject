@@ -16,6 +16,7 @@ public class MTGAssistant implements ScrapingAPI{
 
         try{ database = new DB1(this.getNamesOfAllExpansions1()); }
         catch (CommunicationsException e){ System.out.println("prosze włączyć xampa, nie można nawiązać połączenia"); }
+        System.out.println();
 
     }
 
@@ -33,11 +34,12 @@ public class MTGAssistant implements ScrapingAPI{
         System.out.println("----------------------------------------------------------------------------------------------------------");
 
         ArrayList<String> chosenSets = new ArrayList<>(Arrays.asList(inputSets.split(",")));
+
         for(String set : chosenSets){
 
             if(database.legalSets.contains(set)){
+
                 int expansionId = database.insertExpansion(set, database.getConn());
-                System.out.println("Import kart z dodatku " + set);
                 CardData[] cardsFromExpansion = this.fetchCardsFromExpansion(set);
 
                 for(CardData CardObject : cardsFromExpansion){
@@ -45,6 +47,7 @@ public class MTGAssistant implements ScrapingAPI{
                 }
 
                 database.legalSets.remove(set);
+                System.out.println("Zaimportowano karty z dodatku " + set);
                 System.out.println(new String(new char[50]).replace("\0", "\r\n"));
 
                 if(!database.hasExpansionsInDB){
@@ -56,6 +59,18 @@ public class MTGAssistant implements ScrapingAPI{
             }
         }
     }
+
+
+    public boolean DBHasExpansions(){
+        return database.hasExpansionsInDB;
+    }
+
+
+
+    public void expansionsToJson(){
+        System.out.println("to ja");
+    }
+
 
 
 }

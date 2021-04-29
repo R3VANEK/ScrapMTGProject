@@ -39,8 +39,9 @@ public class DB1 implements CommunicationMYSQL{
         Class.forName(JDBC_DRIVER);
         this.conn = DriverManager.getConnection(DB_URL, USER, PASS);
         this.stmt = conn.createStatement();
-
+        System.out.println("Połączono");
         if(!CommunicationMYSQL.checkDB(this.DB_URL, this.USER, this.PASS)){
+            System.out.println("Wygląda na to, że nie masz bazy danych, zaraz ją stworzymy");
             this.createDB1(this.conn);
         }
         else{
@@ -48,8 +49,6 @@ public class DB1 implements CommunicationMYSQL{
             if(expansionsImported.size() != 0){
                 allExpansions.removeAll(expansionsImported);
                 this.hasExpansionsInDB = true;
-               boolean test =  allExpansions.contains("Amonkhet");
-                System.out.println(test);
             }
         }
         this.legalSets = allExpansions;
