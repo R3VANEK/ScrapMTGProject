@@ -35,24 +35,24 @@ Nie wchodząc w szczegółowe zasady, wymieniłem ważne informacje w kontekści
 
 
 ## Funkcjonalności aplikacji
-Aplikacja pobiera pobiera różne parametry karty (np. nazwę, cenę, dodatek, artystę itp.) z różnych stron internetowych
-aby potem zmagazynować te dane w relacyjnej bazie danych w usłudze xampp. Żeby zacząć korzystać z aplikacji należy uruchomić
-usługę apache oraz mysql w panelu Xamp. Dalej poprowadzi nas interfejs konsolowy. Ogólnie rzecz biorąc, mamy dwie główne opcje : 
+Aplikacja pobiera pobiera różne parametry karty (np. nazwę, cenę, dodatek, artystę itp.) z [Scryfall API](https://scryfall.com/docs/api)
+aby potem zmagazynować te dane w relacyjnej bazie danych w usłudze xampp. Istnieje również możliwośc eksportu tak zapisanych informacji do pliku json.
+Żeby zacząć korzystać z aplikacji należy uruchomićusługę apache oraz mysql w panelu Xamp. Dalej poprowadzi nas interfejs konsolowy. 
+Ogólnie rzecz biorąc, mamy dwie główne opcje : 
 
-* Import kart z danego dodatku
-* Uaktualnienie cen wszystkich kart w bazie danych
+* Import kart z danego dodatku i zapis do bazy danych
+* Zapis kart z bazy danych do formatu JSON
 
 ### Import kart
 Po zatwierdzeniu odpowiednich opcji przed nami wyświetla się lista wszystkich [legalnych](## Uwagi) w tym momencie dodatków do zaimportowania.
 Aby zainicjować akcję należy wpisać dokładną nazwę dodatku, która w pewnym momencie wyświetliła się w liście powyżej, jeżeli chce Pan zaimportować
-więcej niż jeden dodatek kart na raz, proszę wpisać nazwy po przecinku i bez spacji np. "Welcome Deck 2016,Magic 2012". Spowoduje to wyświetlenie
-się wskaźnika pobrania, wstawiane karty można na bierząco śledzić w xampie. Taki import wstawia dane do bazy danych nie naruszając jej relacji
+więcej niż jeden dodatek kart na raz, proszę wpisać nazwy po przecinku i bez spacji np. "Welcome Deck 2016,Magic 2012". Spwoodwuje to natychmiastowy import kart.
+Próbowałem dodać pasek postępu, ale wszystko za szybko się dzieje :) Taki import wstawia dane do bazy danych nie naruszając jej relacji
 (ile ja się z tym namęczyłem)
 
-### Uaktualnienie cen wszystkich kart w bazie danych
-Tak, jak wspomniałem wcześniej, karty nieustannie zmieniają swoją cenę. Aby byc na bierząco można zaktualizować ich ceny w aplikacji.
-Pobierane są wtedy wszystkie rekordy z niezbędnymi informacjami z tabeli "cards_expansions_connections". Gdy program wykryje różnicę cen
-wstawi akualną wartość do DB
+### Zapis kart z bazy danych do formatu JSON
+Istnieje możliwość zapisu kart do formatu JSON. Program w ścieżce "resources" tworzy (lub usuwa i nadpisuje) plik o nazwie data.json. W nim znajdziemy listę o nazwie "data"
+która zawieraja obiekty reprezentujące karty
 
 
 
@@ -82,60 +82,43 @@ Tabela cards nie akceptuje duplikatów rekordów, dlatego za "prawdziwą" iloś�
 
 ## Struktura obiektów
 
-* Commands : interfejs zawierający zmienne znakowe, opisujące tworzenie struktury nowej bazy danych
-* Credentials : interfejs zawierający dane niezbędne do połączenia się z xampem
-* Scraping : interfejs zawierający metody wykorzystujące jsoupa
-* DBConnect : klasa abstrakcyjna zawierająca metody bezpośrednio łączące się z bazą danych w xampie. Wykorzystuje jsoupa
-* DB : klasa, kórej obiekt jest odwzorowaniem instancji bazy danych. Zawiera podstawowe metody niewchodzące w interakcje na poziome jsoupa i jdbc
+* CardData : obiekt ułatwiający przenoszenie danych o kartach
+* ScrapingAPI : interfejs zawierający metody wykorzystujące API
+* CommunicationMYSQL : interfejs z metodomai bezpośrednio działającymi z xampem
+* DB1 : klasa, kórej obiekt jest odwzorowaniem instancji bazy danych. Zawiera podstawowe metody niewchodzące w bezpośrendi kontakt z xampem
+* MTGAssistant : klasa bazowa, która łączy funkcjonalności API z bazą danych
 
-
+ 
 ## Uwagi
 Aplikacja zawiera pare niedopracowanych punktów, z których czuję się tutaj zobowiązany o nich napisać
 
-* Pomimo wielokrotnego "przyspieszania" kodu pobierającego informację z sieci, musiałem sztucznie go spowolnić 
-  ze względu na ryzyko niewczytania zawartości strony cardMarket, która potrafi byc dość obciążona
 
-* Szybkość pobierania kart u mnie jest dosyć przyzwoita, jednak wszystko zależy od "ruchu" na pojedyńczej stronie w momencie pobierania i szybkości internetu
-
-* Zdarzają się przypadki, kiedy w pole z ceną zostaje wpisany NULL. 
-  Jest to spowodowane specjalnymi znakami w nazwie karty. Nie ładuje się wtedy poprawwny url do pobioru ceny.
-  Żeby to poprawić, musiałbym dodać kolejne reguły przekształcania nazw kart, a to strasznie pracochłonne.
-  Powiedziałbym, że ten błąd obowiązuje około 5% kart
-
-* Zalecam pobieranie dodatków jednowyrazowych gdyż z powodu różnicy w nazwach 
-  dodatków na [oficjalnej stronie mtg](https://gatherer.wizards.com/Pages/Default.aspx) i stronie cardMarket czasami w przypadkach nazw
-  takich jak np. "Magic 2014 Core Set" nie można pobrać prawidłowo cen kart. 
-  W przyszłości planuje wykorzystać specjalne [api cardmarketu](https://api.cardmarket.com/ws/documentation) żeby rozwiązać ten problem z różnicami nazw.
-  Przetestowane nazwy dodatków : Amonkhet, Welcome Deck 2016, Magic 2012, Dominaria
+* Bardzo często karty zawierają wartości null w polach "power" i "toughness". Jest to spowodowane tym, że zaklęcia, 
+  w przeciwieństwie do stworów nie maja takich wartości
   
-* Podczas pobierania dodatków może wyświetlić się komunikat "duplicate .... for key_name".
-  Jest to całkowicie normalne i obługiwane zdarzenie. Informuje nas o przypadku, kiedy natrafiliśmy na
-  wydrukowaną jeszcze raz "starą" kartę
+* Nie bardzo przetestowałem pobieranie kart dwustronnych (mdfc na przykład "Alrund God of the Cosmos")
+  mam zaimplementowany kod na cos takiego, ale nie starczyło czasu żebym dokładnie go sprawdził
   
-* Nazwa "legalne" zestawy oznacza, że apka sprawdza, czy nie mamy już takiego dodatku zaimportowanego, 
- a także pobiera pojawiające się nowe dodatki automatycznie, nazwy nie są wpisane na sztywno. 
+  
+* Nazwa "legalne" zestawy oznacza, że apka sprawdza, czy nie mamy już takiego dodatku zaimportowanego
  
-* Jeżeli napotka Pan problemy z połączeniem z xampem, proszę sprawdzić dane interfejsu "Credentials".
-  Domyślnie założyłem, że port mysql to 3300 a użytkownik to root bez hasła
- 
-
+* Jeżeli napotka Pan problemy z połączeniem z xampem, proszę sprawdzić własności klasy DB1. Możliwe, że trzeba w takim przypadku 
+  zmienić wartości JDBC_DRIVER, DB_URL, USER lub PASS
 
 
 ## Technologie
 
 * Java
-* Biblioteka Jsoup - scraping
 * Biblioteka JDBC - baza danych
 
 
 
 ## Wykorzystane strony
 
-Obie te witryny pozwalają na pobieranie swoich danych, pod warunkiem, że nie wykorzysta
-się ich komercyjnie i nie przekroczy jakiejś strasznie wygórowanej liczby zapytań na sekundę
+Witryna zezwala na korzystanie z ich API za darmo, pod warunkiem, że nie przekroczymy jakiejś strasznie wysokiej liczby
+zapytań na sekundę oraz nie wykorzystamy API do celów zarobkowych. Oba warunki spełnione :)
 
-* https://gatherer.wizards.com/Pages/Default.aspx - informacje o poszczególnych kartach
-* https://www.cardmarket.com/en/Magic - ceny kart
+* Scryfall API : https://scryfall.com/docs/api
 
 
 
