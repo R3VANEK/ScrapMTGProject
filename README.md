@@ -92,18 +92,11 @@ Tabela cards nie akceptuje duplikatów rekordów, dlatego za "prawdziwą" iloś�
 ## Uwagi
 Aplikacja zawiera pare niedopracowanych punktów, z których czuję się tutaj zobowiązany o nich napisać
 
-
 * Bardzo często karty zawierają wartości null w polach "power" i "toughness". Jest to spowodowane tym, że zaklęcia, 
   w przeciwieństwie do stworów nie maja takich wartości
-  
-* Nie bardzo przetestowałem pobieranie kart dwustronnych (mdfc na przykład "Alrund God of the Cosmos")
-  mam zaimplementowany kod na cos takiego, ale nie starczyło czasu żebym dokładnie go sprawdził
-  
-  
+ 
 * Nazwa "legalne" zestawy oznacza, że apka sprawdza, czy nie mamy już takiego dodatku zaimportowanego
  
-* Jeżeli napotka Pan problemy z połączeniem z xampem, proszę sprawdzić własności klasy DB1. Możliwe, że trzeba w takim przypadku 
-  zmienić wartości JDBC_DRIVER, DB_URL, USER lub PASS
 
 
 ## Technologie
