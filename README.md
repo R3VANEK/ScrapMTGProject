@@ -26,7 +26,7 @@ This program was constructed for lecture about scraping data, JSON and SQL integ
 
 ## Functionalites of app
 
-The application creates database called 'mtg' on server and stores on it data. After successfull creating connection to it or maikng databse from scratch if it is your first time using it, on console GUI we have 2 options : 
+The application creates database called 'mtg' on server and stores on it data. After successfull creating connection to it or making database from scratch if it is your first time using it, on console GUI we have 2 options : 
 
 * **Download all cards data from given set(s)** : We are prompted [legal](#Comments-and-adnotations) sets to choose from. After typing one or more sets name, program retrevies card data such as its name, price, artwork artist, set etc. from [Scryfall API](https://scryfall.com/docs/api). It then stores it in 'mtg' database
 
